@@ -1,0 +1,1493 @@
+:root {
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: var(--text);
+    background: var(--background);
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    --background: #fbfbfa;
+    --surface: #ffffff;
+    --surface-muted: #f2f3f2;
+    --text: #202124;
+    --muted: #73777a;
+    --border: #e3e5e4;
+    --accent: #3d68c9;
+    --accent-soft: #e8eefb;
+    --warm: #f3ede4;
+}
+
+:root[data-theme='dark'] {
+    color-scheme: dark;
+    --background: #151719;
+    --surface: #202326;
+    --surface-muted: #292d30;
+    --text: #f1f2ef;
+    --muted: #a8adaf;
+    --border: #383d40;
+    --accent: #8daeff;
+    --accent-soft: #273653;
+    --warm: #302a23;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    background: var(--background);
+}
+
+button,
+input,
+select {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+    outline: 3px solid rgba(61, 104, 201, .3);
+    outline-offset: 2px;
+}
+
+.app-shell {
+    min-height: 100vh;
+    display: flex;
+}
+
+.navigation {
+    width: 224px;
+    border-right: 1px solid var(--border);
+    padding: 30px 18px;
+    flex: 0 0 224px;
+    background: var(--background);
+}
+
+.brand {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 0 12px 46px;
+    font-family: Georgia, serif;
+    font-size: 19px;
+    letter-spacing: -.2px;
+}
+
+.brand-mark {
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    color: white;
+    background: var(--accent);
+    font-family: Georgia, serif;
+    font-size: 21px;
+    line-height: 1;
+}
+
+.nav-links {
+    display: grid;
+    gap: 4px;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    border: 0;
+    border-radius: 6px;
+    padding: 12px;
+    color: var(--muted);
+    background: transparent;
+    text-align: left;
+    transition: background .16s ease, color .16s ease;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: var(--text);
+    background: var(--surface-muted);
+}
+
+.nav-link.active {
+    color: var(--accent);
+    font-weight: 650;
+}
+
+.app-column {
+    min-width: 0;
+    flex: 1;
+}
+
+.main-content {
+    max-width: 940px;
+    margin: 0 auto;
+    padding: 58px 54px 156px;
+}
+
+.mobile-header {
+    display: none;
+}
+
+.page {
+    animation: appear .2s ease-out;
+}
+
+@keyframes appear {
+    from {
+        opacity: .4;
+        transform: translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.page-intro {
+    padding-bottom: 50px;
+}
+
+.page-heading {
+    padding-bottom: 38px;
+}
+
+h1,
+h2,
+h3,
+p {
+    margin-top: 0;
+}
+
+h1,
+h2 {
+    font-family: Georgia, serif;
+    font-weight: 400;
+    letter-spacing: -.5px;
+}
+
+h1 {
+    margin-bottom: 12px;
+    font-size: clamp(35px, 5vw, 54px);
+    line-height: 1.03;
+}
+
+h2 {
+    margin-bottom: 0;
+    font-size: 24px;
+}
+
+h3 {
+    margin-bottom: 8px;
+    font-size: 17px;
+    font-weight: 650;
+    line-height: 1.3;
+}
+
+.eyebrow {
+    margin-bottom: 12px;
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 750;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+}
+
+.intro-copy,
+.podcast-author,
+.full-player-copy>p:last-child {
+    color: var(--muted);
+}
+
+.intro-copy {
+    max-width: 440px;
+    margin-bottom: 0;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.content-section {
+    margin-top: 44px;
+}
+
+.section-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 17px;
+}
+
+.text-button,
+.back-link {
+    border: 0;
+    padding: 0;
+    color: var(--accent);
+    background: transparent;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.back-link {
+    display: inline-flex;
+    gap: 7px;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.muted-count {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.episode-list,
+.podcast-list {
+    display: grid;
+    gap: 1px;
+    border-top: 1px solid var(--border);
+}
+
+.episode-row {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    min-width: 0;
+    border-bottom: 1px solid var(--border);
+    padding: 18px 0;
+}
+
+.episode-copy {
+    min-width: 0;
+    flex: 1;
+}
+
+.episode-copy .eyebrow {
+    margin-bottom: 7px;
+    color: var(--muted);
+    font-size: 10px;
+    letter-spacing: .09em;
+}
+
+.episode-copy h3 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.episode-description {
+    max-width: 620px;
+    overflow: hidden;
+    margin-bottom: 8px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.45;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.episode-meta,
+.fine-print {
+    margin-bottom: 0;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.episode-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.episode-progress {
+    width: min(260px, 100%);
+    height: 3px;
+    margin-top: 10px;
+    overflow: hidden;
+    background: var(--border);
+}
+
+.episode-progress span {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+}
+
+.episode-row-compact {
+    padding: 12px 0;
+}
+
+.compact-list {
+    border-top: 0;
+}
+
+.compact-list .episode-copy h3 {
+    margin-bottom: 3px;
+    font-size: 15px;
+}
+
+.compact-list .episode-copy .eyebrow {
+    margin-bottom: 4px;
+}
+
+.podcast-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    border: 0;
+    border-bottom: 1px solid var(--border);
+    padding: 12px 0;
+    color: var(--text);
+    background: transparent;
+    text-align: left;
+}
+
+.podcast-row:hover .podcast-row-copy strong {
+    color: var(--accent);
+}
+
+.podcast-row>svg {
+    margin-left: auto;
+    color: var(--muted);
+}
+
+.podcast-row-copy {
+    min-width: 0;
+    display: grid;
+    gap: 3px;
+}
+
+.podcast-row-copy strong {
+    font-size: 15px;
+}
+
+.podcast-row-copy span,
+.podcast-row-copy small {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.podcast-row-copy small {
+    font-size: 11px;
+}
+
+.artwork {
+    display: block;
+    flex: 0 0 auto;
+    object-fit: cover;
+    background: var(--surface-muted);
+}
+
+.artwork-small {
+    width: 46px;
+    height: 46px;
+    border-radius: 4px;
+}
+
+.artwork-medium {
+    width: 58px;
+    height: 58px;
+    border-radius: 5px;
+}
+
+.artwork-large {
+    width: 214px;
+    height: 214px;
+    border-radius: 6px;
+}
+
+.play-button,
+.icon-button,
+.round-control {
+    display: inline-grid;
+    place-items: center;
+    border: 1px solid var(--border);
+    color: var(--text);
+    background: var(--surface);
+}
+
+.play-button {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+}
+
+.play-button:hover,
+.icon-button:hover,
+.round-control:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.play-button-small {
+    width: 34px;
+    height: 34px;
+}
+
+.icon-button {
+    width: 34px;
+    height: 34px;
+    border-radius: 4px;
+}
+
+.icon-button.is-active {
+    color: var(--accent);
+    background: var(--accent-soft);
+}
+
+.empty-continue {
+    border-left: 3px solid var(--accent);
+    padding: 24px 24px 25px;
+    background: var(--warm);
+}
+
+.empty-continue h2 {
+    max-width: 450px;
+    font-size: 23px;
+    line-height: 1.35;
+}
+
+.quiet-message {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.empty-state {
+    padding: 70px 0;
+}
+
+.empty-state h1 {
+    font-size: 38px;
+}
+
+.primary-button,
+.secondary-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 39px;
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    padding: 0 16px;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.primary-button {
+    color: white;
+    background: var(--accent);
+}
+
+.primary-button:hover {
+    background: #3159b1;
+}
+
+.secondary-button {
+    border-color: var(--border);
+    color: var(--text);
+    background: var(--surface);
+}
+
+.secondary-button.subscribed {
+    color: var(--accent);
+    background: var(--accent-soft);
+}
+
+.search-field {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    border-bottom: 2px solid var(--text);
+    padding: 12px 0;
+    color: var(--muted);
+}
+
+.search-field input {
+    min-width: 0;
+    flex: 1;
+    border: 0;
+    outline: 0;
+    color: var(--text);
+    background: transparent;
+    font-size: 18px;
+}
+
+.search-field input::placeholder {
+    color: #a5a8a8;
+}
+
+.search-field button {
+    display: grid;
+    place-items: center;
+    border: 0;
+    color: var(--muted);
+    background: transparent;
+}
+
+.podcast-header {
+    display: flex;
+    gap: 34px;
+    align-items: flex-start;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 44px;
+}
+
+.podcast-header-copy {
+    min-width: 0;
+    max-width: 620px;
+}
+
+.podcast-header h1 {
+    margin-bottom: 8px;
+    font-size: 42px;
+}
+
+.podcast-author {
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.podcast-description {
+    max-width: 570px;
+    display: -webkit-box;
+    overflow: hidden;
+    margin-bottom: 5px;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.podcast-description.expanded {
+    display: block;
+}
+
+.podcast-actions {
+    display: flex;
+    gap: 9px;
+    margin-top: 23px;
+}
+
+.full-player {
+    max-width: 620px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.full-player .back-link {
+    display: flex;
+    justify-content: center;
+}
+
+.full-player-art {
+    display: flex;
+    justify-content: center;
+    margin: 26px 0 29px;
+}
+
+.full-player-art .artwork-large {
+    width: min(390px, 78vw);
+    height: min(390px, 78vw);
+}
+
+.full-player-copy h1 {
+    margin-bottom: 10px;
+    font-size: 33px;
+}
+
+.full-player-copy p:last-child {
+    margin-bottom: 30px;
+}
+
+.full-player-progress {
+    text-align: left;
+}
+
+.full-player-progress>div {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 7px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.progress-range {
+    display: block;
+    width: 100%;
+    height: 4px;
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+
+.full-player-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    margin: 28px 0 34px;
+}
+
+.full-player-controls .play-button {
+    width: 57px;
+    height: 57px;
+    border-color: var(--accent);
+    color: white;
+    background: var(--accent);
+}
+
+.round-control {
+    position: relative;
+    width: 43px;
+    height: 43px;
+    border-radius: 50%;
+}
+
+.round-control small {
+    position: absolute;
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.player-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--border);
+    padding-top: 18px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.player-options label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.player-options input {
+    width: 110px;
+    accent-color: var(--accent);
+}
+
+.player-options select {
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 6px 8px;
+    color: var(--text);
+    background: var(--surface);
+}
+
+.mini-player {
+    position: fixed;
+    z-index: 4;
+    right: 0;
+    bottom: 0;
+    left: 224px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    border-top: 1px solid var(--border);
+    padding: 10px 30px;
+    background: color-mix(in srgb, var(--surface) 96%, transparent);
+    box-shadow: 0 -5px 22px rgba(32, 33, 36, .04);
+}
+
+.mini-player-info {
+    display: flex;
+    flex: 1;
+    gap: 11px;
+    align-items: center;
+    min-width: 0;
+    border: 0;
+    padding: 0;
+    color: var(--text);
+    background: transparent;
+    text-align: left;
+}
+
+.mini-player-info span {
+    display: grid;
+    min-width: 0;
+    gap: 3px;
+}
+
+.mini-player-info strong,
+.mini-player-info small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mini-player-info strong {
+    font-size: 13px;
+}
+
+.mini-player-info small {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.mini-progress {
+    width: 34%;
+}
+
+.mini-controls {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.mini-controls .play-button {
+    width: 36px;
+    height: 36px;
+}
+
+.player-skip {
+    border: 0;
+    color: var(--muted);
+    background: transparent;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.queue-list {
+    border-top: 1px solid var(--border);
+}
+
+.queue-item {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    padding: 11px 0;
+}
+
+.queue-item>span {
+    display: grid;
+    flex: 1;
+    gap: 3px;
+    min-width: 0;
+}
+
+.queue-item strong,
+.queue-item small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.queue-item strong {
+    font-size: 13px;
+}
+
+.queue-item small {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+@media (max-width: 700px) {
+    .app-shell {
+        display: block;
+    }
+
+    .navigation {
+        position: fixed;
+        z-index: 5;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        display: block;
+        width: auto;
+        height: 62px;
+        border-top: 1px solid var(--border);
+        border-right: 0;
+        padding: 0 9px;
+        background: var(--surface);
+    }
+
+    .navigation .theme-toggle {
+        display: none;
+    }
+
+    .brand,
+    .mobile-header {
+        display: none;
+    }
+
+    .nav-links {
+        height: 100%;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0;
+    }
+
+    .nav-link {
+        display: grid;
+        justify-items: center;
+        align-content: center;
+        gap: 3px;
+        border-radius: 0;
+        padding: 6px 0;
+        font-size: 10px;
+    }
+
+    .app-column {
+        padding-bottom: 62px;
+    }
+
+    .mobile-header {
+        position: sticky;
+        top: 0;
+        z-index: 3;
+        display: flex;
+        gap: 9px;
+        align-items: center;
+        height: 53px;
+        border-bottom: 1px solid var(--border);
+        padding: 0 18px;
+        background: color-mix(in srgb, var(--background) 96%, transparent);
+        font-family: Georgia, serif;
+    }
+
+    .mobile-theme-toggle {
+        display: grid;
+        width: auto;
+        margin: 0 0 0 auto;
+        padding: 6px;
+    }
+
+    .mobile-header .brand-mark {
+        width: 24px;
+        height: 24px;
+        font-size: 18px;
+    }
+
+    .main-content {
+        padding: 34px 20px 124px;
+    }
+
+    h1 {
+        font-size: 38px;
+    }
+
+    .page-intro {
+        padding-bottom: 31px;
+    }
+
+    .content-section {
+        margin-top: 34px;
+    }
+
+    .episode-row {
+        gap: 10px;
+        padding: 15px 0;
+    }
+
+    .episode-description {
+        display: none;
+    }
+
+    .episode-copy h3 {
+        font-size: 15px;
+    }
+
+    .episode-actions {
+        gap: 3px;
+    }
+
+    .episode-actions .icon-button {
+        display: none;
+    }
+
+    .artwork-large {
+        width: 134px;
+        height: 134px;
+    }
+
+    .podcast-header {
+        gap: 17px;
+        padding-bottom: 31px;
+    }
+
+    .podcast-header h1 {
+        font-size: 30px;
+    }
+
+    .podcast-header .artwork-large {
+        width: 110px;
+        height: 110px;
+    }
+
+    .podcast-actions {
+        flex-wrap: wrap;
+    }
+
+    .mini-player {
+        right: 0;
+        bottom: 62px;
+        left: 0;
+        gap: 9px;
+        padding: 8px 14px;
+    }
+
+    .mini-progress {
+        position: absolute;
+        right: 0;
+        bottom: -2px;
+        left: 0;
+        width: auto;
+    }
+
+    .mini-progress .progress-range {
+        height: 3px;
+    }
+
+    .mini-controls {
+        gap: 2px;
+    }
+
+    .mini-controls .play-button {
+        width: 34px;
+        height: 34px;
+    }
+
+    .full-player-art .artwork-large {
+        width: min(320px, 78vw);
+        height: min(320px, 78vw);
+    }
+
+    .full-player-copy h1 {
+        font-size: 28px;
+    }
+}
+
+@media (max-width: 430px) {
+    .podcast-header {
+        display: grid;
+        grid-template-columns: 92px 1fr;
+    }
+
+    .podcast-header .artwork-large {
+        width: 92px;
+        height: 92px;
+    }
+
+    .podcast-header-copy {
+        grid-column: 1 / -1;
+    }
+
+    .podcast-header>.artwork-large {
+        grid-row: 1;
+    }
+
+    .podcast-header-copy {
+        margin-top: -108px;
+        margin-left: 109px;
+    }
+
+    .podcast-header-copy .podcast-description,
+    .podcast-header-copy .text-button,
+    .podcast-header-copy .podcast-actions {
+        margin-left: -109px;
+    }
+
+    .podcast-header-copy .podcast-description {
+        margin-top: 30px;
+    }
+}
+
+.online-section {
+    border-top: 1px solid var(--border);
+    padding-top: 32px;
+}
+
+.online-results {
+    display: grid;
+    gap: 1px;
+    border-top: 1px solid var(--border);
+}
+
+.online-podcast {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    padding: 12px 0;
+}
+
+.online-podcast>img {
+    width: 58px;
+    height: 58px;
+    border-radius: 5px;
+    object-fit: cover;
+    background: var(--surface-muted);
+}
+
+.online-podcast>div {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+    gap: 3px;
+}
+
+.online-podcast-info {
+    display: flex;
+    flex: 1;
+    gap: 14px;
+    align-items: center;
+    min-width: 0;
+    border: 0;
+    padding: 0;
+    color: var(--text);
+    background: transparent;
+    text-align: left;
+}
+
+.online-podcast-info>img {
+    width: 58px;
+    height: 58px;
+    border-radius: 5px;
+    object-fit: cover;
+    background: var(--surface-muted);
+}
+
+.online-podcast-info>span {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+}
+
+.online-podcast-info em {
+    color: var(--accent);
+    font-size: 11px;
+    font-style: normal;
+    font-weight: 650;
+}
+
+.online-podcast strong,
+.online-podcast span,
+.online-podcast small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.online-podcast strong {
+    font-size: 14px;
+}
+
+.online-podcast span,
+.online-podcast small {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.online-podcast small {
+    font-size: 11px;
+}
+
+.online-podcast .secondary-button {
+    flex: 0 0 auto;
+    min-height: 34px;
+    padding: 0 11px;
+}
+
+.online-podcast .secondary-button:disabled {
+    cursor: default;
+    opacity: .65;
+}
+
+.search-error {
+    margin: 0 0 14px;
+    color: #a34b3f;
+    font-size: 13px;
+}
+
+.preview-episode-list {
+    display: grid;
+    gap: 1px;
+    border-top: 1px solid var(--border);
+}
+
+.preview-episode {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    padding: 17px 0;
+}
+
+.preview-episode h3 {
+    margin-bottom: 6px;
+}
+
+.preview-episode p,
+.preview-episode>span {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.preview-episode>div {
+    min-width: 0;
+}
+
+.preview-episode>span {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+@media (max-width: 500px) {
+    .online-podcast {
+        align-items: flex-start;
+    }
+
+    .online-podcast .secondary-button {
+        margin-left: auto;
+    }
+
+    .preview-episode {
+        display: block;
+    }
+
+    .preview-episode>span {
+        display: block;
+        margin-top: 7px;
+    }
+}
+
+.preview-episode-description {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.preview-episode-description.expanded {
+    display: block;
+}
+
+.preview-description-toggle {
+    border: 0;
+    padding: 3px 0 0;
+    color: var(--accent);
+    background: transparent;
+    font-size: 11px;
+    font-weight: 650;
+}
+
+.preview-warning {
+    margin: 0 0 18px;
+    color: #9a5b22;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.preview-episode-actions {
+    display: flex;
+    flex: 0 0 auto;
+    gap: 12px;
+    align-items: center;
+}
+
+.preview-episode-actions>span {
+    color: var(--muted);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+@media (max-width: 500px) {
+    .preview-episode-actions {
+        justify-content: space-between;
+        margin-top: 10px;
+    }
+}
+
+.theme-toggle {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    width: 100%;
+    margin-top: 36px;
+    border: 0;
+    border-radius: 6px;
+    padding: 12px;
+    color: var(--muted);
+    background: transparent;
+    text-align: left;
+}
+
+.theme-toggle:hover {
+    color: var(--text);
+    background: var(--surface-muted);
+}
+
+.mobile-theme-toggle {
+    display: none;
+}
+
+body {
+    color: var(--text);
+    transition: color .2s ease, background-color .2s ease;
+}
+
+.app-shell {
+    background: var(--background);
+}
+
+.navigation {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    box-shadow: 8px 0 30px rgba(35, 43, 52, .025);
+}
+
+.brand {
+    color: var(--text);
+    font-weight: 650;
+}
+
+.brand-mark {
+    box-shadow: 0 5px 15px rgba(61, 104, 201, .2);
+}
+
+.main-content {
+    max-width: 1000px;
+    padding: 64px 64px 170px;
+}
+
+.page-intro {
+    max-width: 680px;
+    padding-bottom: 58px;
+}
+
+.page-intro h1 {
+    max-width: 620px;
+    margin-bottom: 18px;
+    font-size: 52px;
+    line-height: 1.02;
+}
+
+.page-heading {
+    max-width: 680px;
+    padding-bottom: 42px;
+}
+
+.page-heading h1 {
+    font-size: 48px;
+}
+
+.content-section {
+    margin-top: 56px;
+}
+
+.section-heading {
+    margin-bottom: 20px;
+}
+
+.section-heading h2 {
+    font-size: 26px;
+}
+
+.episode-list,
+.podcast-list {
+    gap: 0;
+    border-top: 1px solid var(--border);
+}
+
+.episode-row,
+.podcast-row {
+    padding-right: 14px;
+    padding-left: 14px;
+    transition: background-color .16s ease, border-color .16s ease;
+}
+
+.episode-row:hover,
+.podcast-row:hover {
+    background: var(--surface);
+}
+
+.episode-row:hover {
+    border-color: transparent;
+}
+
+.artwork-small,
+.artwork-medium,
+.artwork-large {
+    border-radius: 9px;
+    box-shadow: 0 7px 18px rgba(32, 33, 36, .1);
+}
+
+.artwork-medium {
+    width: 62px;
+    height: 62px;
+}
+
+.play-button,
+.icon-button,
+.round-control {
+    transition: transform .16s ease, border-color .16s ease, background-color .16s ease, color .16s ease;
+}
+
+.play-button:hover,
+.icon-button:hover,
+.round-control:hover {
+    transform: translateY(-1px);
+}
+
+.play-button {
+    box-shadow: 0 5px 12px rgba(32, 33, 36, .07);
+}
+
+.primary-button,
+.secondary-button {
+    min-height: 42px;
+    border-radius: 8px;
+    padding: 0 18px;
+}
+
+.primary-button:hover {
+    background: var(--accent);
+    filter: brightness(.92);
+}
+
+.secondary-button:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+}
+
+.search-field {
+    max-width: 760px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 13px 16px;
+    background: var(--surface);
+    box-shadow: 0 6px 20px rgba(32, 33, 36, .035);
+}
+
+.search-field:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+.search-field input::placeholder {
+    color: var(--muted);
+    opacity: .7;
+}
+
+.podcast-header {
+    gap: 40px;
+    border-bottom: 0;
+    padding: 28px;
+    border-radius: 14px;
+    background: var(--surface);
+    box-shadow: 0 12px 30px rgba(32, 33, 36, .045);
+}
+
+.podcast-header .artwork-large {
+    box-shadow: 0 12px 28px rgba(32, 33, 36, .14);
+}
+
+.podcast-header-copy {
+    padding-top: 8px;
+}
+
+.podcast-header h1 {
+    font-size: 44px;
+}
+
+.full-player-art .artwork-large {
+    box-shadow: 0 20px 45px rgba(32, 33, 36, .18);
+}
+
+.mini-player {
+    min-height: 72px;
+    padding: 12px 34px;
+    box-shadow: 0 -10px 30px rgba(32, 33, 36, .09);
+}
+
+.mini-player-info:hover strong {
+    color: var(--accent);
+}
+
+.empty-state {
+    max-width: 580px;
+}
+
+:root[data-theme='dark'] .navigation,
+:root[data-theme='dark'] .mini-player {
+    box-shadow: 0 0 30px rgba(0, 0, 0, .16);
+}
+
+:root[data-theme='dark'] .podcast-header,
+:root[data-theme='dark'] .search-field,
+:root[data-theme='dark'] .play-button,
+:root[data-theme='dark'] .secondary-button {
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .16);
+}
+
+@media (max-width: 700px) {
+    .navigation {
+        position: fixed;
+        top: auto;
+        height: 62px;
+    }
+
+    .mobile-theme-toggle {
+        display: grid;
+        width: auto;
+        margin: 0 0 0 auto;
+        padding: 6px;
+    }
+
+    .main-content {
+        padding: 34px 20px 132px;
+    }
+
+    .page-intro {
+        padding-bottom: 36px;
+    }
+
+    .page-intro h1,
+    .page-heading h1 {
+        font-size: 38px;
+    }
+
+    .content-section {
+        margin-top: 42px;
+    }
+
+    .episode-row,
+    .podcast-row {
+        padding-right: 4px;
+        padding-left: 4px;
+    }
+
+    .podcast-header {
+        gap: 17px;
+        padding: 18px;
+        border-radius: 12px;
+    }
+
+    .podcast-header-copy {
+        padding-top: 0;
+    }
+
+    .mini-player {
+        min-height: 62px;
+        padding: 8px 14px;
+    }
+}

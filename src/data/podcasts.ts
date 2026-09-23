@@ -1,0 +1,68 @@
+import type { Podcast } from '../types/podcast'
+
+export const podcasts: Podcast[] = [
+    {
+        id: 'signal-path',
+        title: 'Signal Path',
+        author: 'Mara Ellison',
+        description: 'Thoughtful conversations about the systems, tools, and quiet decisions shaping everyday technology.',
+        artwork: 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?auto=format&fit=crop&w=480&q=80',
+        category: 'Technology',
+    },
+    {
+        id: 'small-hours',
+        title: 'Small Hours',
+        author: 'The Lantern Studio',
+        description: 'Short essays and unhurried conversations for the edges of the day.',
+        artwork: 'https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=480&q=80',
+        category: 'Culture',
+    },
+    {
+        id: 'field-notes',
+        title: 'Field Notes',
+        author: 'Nora Vale',
+        description: 'Reporting from the places where climate, cities, and people meet.',
+        artwork: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=480&q=80',
+        category: 'Science',
+    },
+    {
+        id: 'the-long-view',
+        title: 'The Long View',
+        author: 'Jonas Reed',
+        description: 'History, context, and the stories underneath the news cycle.',
+        artwork: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&w=480&q=80',
+        category: 'History',
+    },
+    {
+        id: 'common-ground',
+        title: 'Common Ground',
+        author: 'Asha and Reuben',
+        description: 'Practical conversations about the things we build together.',
+        artwork: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=480&q=80',
+        category: 'Society',
+    },
+    {
+        id: 'after-the-rain',
+        title: 'After the Rain',
+        author: 'Cedar House',
+        description: 'A slower look at creativity, work, and making a life around both.',
+        artwork: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=480&q=80',
+        category: 'Creativity',
+    },
+    {
+        id: 'open-water',
+        title: 'Open Water',
+        author: 'Blue Current',
+        description: 'Stories from the water, and the people working to understand it.',
+        artwork: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=480&q=80',
+        category: 'Nature',
+    },
+    {
+        id: 'work-in-progress',
+        title: 'Work in Progress',
+        author: 'Studio Practice',
+        description: 'Honest conversations with people still figuring it out.',
+        artwork: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=480&q=80',
+        category: 'Work',
+    },
+]
