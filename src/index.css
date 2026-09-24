@@ -120,6 +120,8 @@ select:focus-visible {
 .nav-links {
     display: grid;
     gap: 4px;
+    flex: 1;
+    min-height: 0;
 }
 
 .nav-link {
@@ -1245,21 +1247,28 @@ h3 {
 
 .theme-toggle {
     display: flex;
-    gap: 12px;
+    flex-direction: column;
+    gap: 6px;
     align-items: center;
-    width: 100%;
-    margin-top: 36px;
-    border: 0;
-    border-radius: 6px;
-    padding: 12px;
+    width: 36px;
+    height: 36px;
+    margin-top: 0;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    padding: 0;
     color: var(--muted);
-    background: transparent;
-    text-align: left;
+    background: var(--surface-muted);
+    text-align: center;
+    justify-content: center;
+}
+
+.theme-toggle span {
+    display: none;
 }
 
 .theme-toggle:hover {
     color: var(--text);
-    background: var(--surface-muted);
+    background: var(--surface-elevated);
 }
 
 .mobile-theme-toggle {
@@ -1615,9 +1624,13 @@ body {
 
 .nav-end {
     display: flex;
+    flex-direction: column;
     align-items: center;
     gap: 12px;
     margin-top: auto;
+    flex-shrink: 0;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
 }
 
 .user-menu-wrapper {
