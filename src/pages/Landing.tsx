@@ -5,106 +5,113 @@ export function Landing() {
     const { login } = useAuth()
     const [loginError, setLoginError] = useState('')
     const [isLoading, setIsLoading] = useState(false)
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
 
-    const heroRef = useRef<HTMLDivElement>(null)
+    // Refs for scroll-driven disassembly
     const pinRef = useRef<HTMLDivElement>(null)
+    const floatRef = useRef<HTMLDivElement>(null)
+
+    // SVG part refs
     const headbandRef = useRef<SVGGElement>(null)
+    const padRef = useRef<SVGGElement>(null)
+    const leftStemRef = useRef<SVGGElement>(null)
+    const rightStemRef = useRef<SVGGElement>(null)
     const leftHingeRef = useRef<SVGGElement>(null)
     const rightHingeRef = useRef<SVGGElement>(null)
     const leftCupRef = useRef<SVGGElement>(null)
     const rightCupRef = useRef<SVGGElement>(null)
-    const leftDriverRef = useRef<SVGGElement>(null)
-    const rightDriverRef = useRef<SVGGElement>(null)
     const leftCushionRef = useRef<SVGGElement>(null)
     const rightCushionRef = useRef<SVGGElement>(null)
+    const leftDriverRef = useRef<SVGGElement>(null)
+    const rightDriverRef = useRef<SVGGElement>(null)
+    const leftMeshRef = useRef<SVGGElement>(null)
+    const rightMeshRef = useRef<SVGGElement>(null)
     const pcbRef = useRef<SVGGElement>(null)
-    const label1Ref = useRef<SVGGElement>(null)
-    const label2Ref = useRef<SVGGElement>(null)
-    const label3Ref = useRef<SVGGElement>(null)
-    const label4Ref = useRef<SVGGElement>(null)
-    const label5Ref = useRef<SVGGElement>(null)
+    const screwsRef = useRef<SVGGElement>(null)
+    const labelsRef = useRef<SVGGElement>(null)
+    const measureRef = useRef<SVGGElement>(null)
 
+    // Hero idle float
     useEffect(() => {
-        // Idle float animation for hero headphone
-        const hero = heroRef.current
-        if (!hero) return
-        let frame: number
-        let start: number | null = null
-        const animate = (ts: number) => {
-            if (!start) start = ts
-            const t = (ts - start) / 1000
-            hero.style.transform = `translateY(${Math.sin(t * 0.7) * 10}px)`
-            frame = requestAnimationFrame(animate)
+        const el = floatRef.current
+        if (!el) return
+        let raf: number
+        const start = performance.now()
+        const tick = (now: number) => {
+            const t = (now - start) / 1000
+            el.style.transform = `translateY(${Math.sin(t * 0.65) * 12}px)`
+            raf = requestAnimationFrame(tick)
         }
-        frame = requestAnimationFrame(animate)
-        return () => cancelAnimationFrame(frame)
+        raf = requestAnimationFrame(tick)
+        return () => cancelAnimationFrame(raf)
     }, [])
 
+    // Scroll-driven disassembly
     useEffect(() => {
         const pin = pinRef.current
         if (!pin) return
 
-        const parts = {
-            headband: headbandRef.current,
-            leftHinge: leftHingeRef.current,
-            rightHinge: rightHingeRef.current,
-            leftCup: leftCupRef.current,
-            rightCup: rightCupRef.current,
-            leftDriver: leftDriverRef.current,
-            rightDriver: rightDriverRef.current,
-            leftCushion: leftCushionRef.current,
-            rightCushion: rightCushionRef.current,
-            pcb: pcbRef.current,
-            label1: label1Ref.current,
-            label2: label2Ref.current,
-            label3: label3Ref.current,
-            label4: label4Ref.current,
-            label5: label5Ref.current,
+        const lerp = (a: number, b: number, t: number) => a + (b - a) * t
+        const eio = (t: number) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
+
+        const setTransform = (el: SVGGElement | null, tx: number, ty: number, scale: number, opacity: number, p: number) => {
+            if (!el) return
+            const e = eio(Math.max(0, Math.min(1, p)))
+            el.setAttribute('transform', `translate(${tx * e},${ty * e}) scale(${lerp(1, scale, e)})`)
+            el.style.opacity = String(lerp(1, opacity, e))
         }
 
         const onScroll = () => {
-            const pinRect = pin.getBoundingClientRect()
             const pinTop = pin.offsetTop
+            const pinH = pin.offsetHeight
+            const winH = window.innerHeight
             const scrolled = window.scrollY - pinTop
-            const totalHeight = pin.offsetHeight - window.innerHeight
-            const p = Math.max(0, Math.min(1, scrolled / totalHeight))
+            const total = pinH - winH
+            const p = Math.max(0, Math.min(1, scrolled / total))
 
-            const ease = (v: number) => v < 0.5 ? 2 * v * v : -1 + (4 - 2 * v) * v
+            // 7 phases evenly spaced
+            const phase = (from: number, to: number) => Math.max(0, Math.min(1, (p - from) / (to - from)))
 
-            const p1 = Math.max(0, Math.min(1, p * 5))           // 0–20%
-            const p2 = Math.max(0, Math.min(1, (p - 0.2) * 5))   // 20–40%
-            const p3 = Math.max(0, Math.min(1, (p - 0.4) * 5))   // 40–60%
-            const p4 = Math.max(0, Math.min(1, (p - 0.6) * 5))   // 60–80%
-            const p5 = Math.max(0, Math.min(1, (p - 0.8) * 5))   // 80–100%
+            const p1 = phase(0, 0.18)
+            const p2 = phase(0.15, 0.33)
+            const p3 = phase(0.30, 0.50)
+            const p4 = phase(0.46, 0.64)
+            const p5 = phase(0.60, 0.78)
+            const p6 = phase(0.74, 0.90)
+            const p7 = phase(0.86, 1.00)
 
-            const apply = (el: SVGGElement | null, tx: number, ty: number, op: number, progress: number) => {
-                if (!el) return
-                const ep = ease(progress)
-                el.setAttribute('transform', `translate(${tx * ep}, ${ty * ep})`)
-                el.style.opacity = String(Math.max(0.08, op + (1 - op) * (1 - ep)))
-            }
+            // Headband arcs up
+            setTransform(headbandRef.current, 0, -200, 1, 0.08, p1)
+            setTransform(padRef.current, 0, -200, 1, 0.08, p1)
+            setTransform(measureRef.current, 0, -200, 1, 0, p1)
 
-            // Phase 1: headband separates upward
-            apply(parts.headband, 0, -160, 0.15, p1)
-            // Phase 2: hinges split
-            apply(parts.leftHinge, -170, 60, 0.2, p2)
-            apply(parts.rightHinge, 170, 60, 0.2, p2)
-            // Phase 3: ear cups fly apart
-            apply(parts.leftCup, -230, 110, 0.15, p3)
-            apply(parts.rightCup, 230, 110, 0.15, p3)
-            // Phase 4: cushions + drivers separate
-            apply(parts.leftCushion, -270, 190, 0.12, p4)
-            apply(parts.rightCushion, 270, 190, 0.12, p4)
-            apply(parts.leftDriver, -190, 240, 0.18, p4)
-            apply(parts.rightDriver, 190, 240, 0.18, p4)
-            // Phase 5: PCB + labels appear
-            apply(parts.pcb, 0, 300, 0.1, p5)
+            // Stems separate with hinges
+            setTransform(leftStemRef.current, -120, 60, 1, 0.12, p2)
+            setTransform(rightStemRef.current, 120, 60, 1, 0.12, p2)
+            setTransform(leftHingeRef.current, -140, 90, 1, 0.15, p2)
+            setTransform(rightHingeRef.current, 140, 90, 1, 0.15, p2)
 
-            if (parts.label1) parts.label1.style.opacity = String(p5 * 0.7)
-            if (parts.label2) parts.label2.style.opacity = String(p5 * 0.7)
-            if (parts.label3) parts.label3.style.opacity = String(p5 * 0.7)
-            if (parts.label4) parts.label4.style.opacity = String(p5 * 0.7)
-            if (parts.label5) parts.label5.style.opacity = String(p5 * 0.7)
+            // Ear cups fly wide
+            setTransform(leftCupRef.current, -260, 110, 1, 0.1, p3)
+            setTransform(rightCupRef.current, 260, 110, 1, 0.1, p3)
+
+            // Cushions peel off
+            setTransform(leftCushionRef.current, -310, 180, 1, 0.1, p4)
+            setTransform(rightCushionRef.current, 310, 180, 1, 0.1, p4)
+
+            // Drivers separate
+            setTransform(leftDriverRef.current, -260, 240, 1, 0.12, p5)
+            setTransform(rightDriverRef.current, 260, 240, 1, 0.12, p5)
+
+            // Mesh grilles drop
+            setTransform(leftMeshRef.current, -200, 300, 1, 0.1, p6)
+            setTransform(rightMeshRef.current, 200, 300, 1, 0.1, p6)
+            setTransform(screwsRef.current, 0, 260, 1, 0.2, p6)
+
+            // PCB + labels appear
+            setTransform(pcbRef.current, 0, 320, 1, 0.1, p7)
+            if (labelsRef.current) labelsRef.current.style.opacity = String(p7 * 0.75)
         }
 
         window.addEventListener('scroll', onScroll, { passive: true })
@@ -115,446 +122,499 @@ export function Landing() {
     const handleGoogle = async () => {
         setIsLoading(true)
         setLoginError('')
-        try {
-            await login()
-        } catch {
-            setLoginError('Sign in failed. Please try again.')
-        } finally {
-            setIsLoading(false)
-        }
+        try { await login() }
+        catch { setLoginError('Sign in failed. Please try again.') }
+        finally { setIsLoading(false) }
     }
 
     return (
-        <div style={{ background: '#05080D', color: '#DDE8F2', fontFamily: "'Inter', 'Manrope', system-ui, sans-serif", overflowX: 'hidden' }}>
+        <div style={{ background: '#05080D', color: '#DDE8F2', fontFamily: "'Inter', 'Helvetica Neue', system-ui, sans-serif", overflowX: 'hidden' }}>
             <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');
+                *, *::before, *::after { box-sizing: border-box; }
 
-                .qc-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48px; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(to bottom, rgba(5,8,13,0.9) 0%, transparent 100%); backdrop-filter: blur(0px); }
-                .qc-nav-logo { font-size: 18px; font-weight: 400; letter-spacing: 0.08em; color: #DDE8F2; }
-                .qc-nav-links { display: flex; gap: 40px; align-items: center; }
-                .qc-nav-link { font-size: 13px; color: #8FB9D8; text-decoration: none; letter-spacing: 0.04em; transition: color 0.2s; cursor: pointer; background: none; border: none; }
-                .qc-nav-link:hover { color: #DDE8F2; }
-                .qc-nav-signin { font-size: 13px; color: #DDE8F2; letter-spacing: 0.06em; padding: 8px 20px; border: 1px solid rgba(143,185,216,0.35); background: transparent; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
-                .qc-nav-signin:hover { border-color: rgba(143,185,216,0.7); background: rgba(143,185,216,0.05); }
+                /* NAV */
+                .l-nav { position: fixed; inset-block-start: 0; inset-inline: 0; z-index: 200; display: flex; align-items: center; justify-content: space-between; padding: 28px 52px; }
+                .l-nav::after { content: ''; position: absolute; inset: 0; background: linear-gradient(#05080D 40%, transparent); pointer-events: none; }
+                .l-nav-logo { font-size: 15px; font-weight: 400; letter-spacing: .12em; text-transform: uppercase; color: #DDE8F2; z-index: 1; }
+                .l-nav-right { display: flex; align-items: center; gap: 36px; z-index: 1; }
+                .l-nav-link { font-size: 12px; letter-spacing: .06em; color: #8FB9D8; background: none; border: none; cursor: pointer; padding: 0; transition: color .2s; font-family: inherit; }
+                .l-nav-link:hover { color: #DDE8F2; }
+                .l-nav-cta { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #DDE8F2; background: none; border: 1px solid rgba(221,232,242,.25); padding: 9px 22px; cursor: pointer; font-family: inherit; transition: border-color .25s, background .25s; }
+                .l-nav-cta:hover { border-color: rgba(221,232,242,.6); background: rgba(221,232,242,.04); }
 
-                .qc-hero { position: relative; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
-                .qc-grid { position: absolute; inset: 0; opacity: 0.035; background-image: linear-gradient(rgba(143,185,216,1) 1px, transparent 1px), linear-gradient(90deg, rgba(143,185,216,1) 1px, transparent 1px); background-size: 60px 60px; }
-                .qc-hero-title { font-size: clamp(56px, 9vw, 120px); font-weight: 300; letter-spacing: -0.03em; line-height: 1; text-align: center; color: #DDE8F2; margin: 0; }
-                .qc-hero-sub { font-size: clamp(16px, 2vw, 20px); font-weight: 300; color: #8FB9D8; text-align: center; margin: 20px 0 0; letter-spacing: 0.02em; }
-                .qc-hero-desc { font-size: 13px; color: #48677E; text-align: center; margin: 12px 0 0; letter-spacing: 0.05em; text-transform: uppercase; }
-                .qc-scroll-hint { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; opacity: 0.5; }
-                .qc-scroll-hint span { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: #8FB9D8; }
-                .qc-scroll-line { width: 1px; height: 48px; background: linear-gradient(to bottom, #8FB9D8, transparent); animation: scrollPulse 2s ease-in-out infinite; }
-                @keyframes scrollPulse { 0%,100% { opacity: 0; transform: scaleY(0.5); transform-origin: top; } 50% { opacity: 1; transform: scaleY(1); } }
+                /* HERO */
+                .l-hero { position: relative; min-height: 100svh; display: grid; place-items: center; overflow: hidden; padding-top: 100px; }
+                .l-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(143,185,216,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(143,185,216,.06) 1px, transparent 1px); background-size: 72px 72px; }
+                .l-radial { position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(143,185,216,.07) 0%, transparent 70%); }
+                .l-hero-inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 0; }
+                .l-hero-h1 { font-size: clamp(64px, 11vw, 140px); font-weight: 300; letter-spacing: -.04em; line-height: .95; color: #DDE8F2; text-align: center; margin: 32px 0 0; }
+                .l-hero-sub { font-size: clamp(15px, 1.6vw, 19px); font-weight: 300; color: #8FB9D8; letter-spacing: .02em; text-align: center; margin: 22px 0 0; }
+                .l-hero-meta { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: #48677E; text-align: center; margin: 14px 0 0; }
+                .l-scroll-cue { position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 10px; }
+                .l-scroll-cue span { font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: #48677E; }
+                .l-scroll-track { width: 1px; height: 52px; background: linear-gradient(#48677E, transparent); animation: scTrack 2.4s ease-in-out infinite; }
+                @keyframes scTrack { 0%,100%{opacity:0;transform:scaleY(.3);transform-origin:top} 40%,60%{opacity:1;transform:scaleY(1)} }
 
-                .qc-pin { position: relative; height: 600vh; }
-                .qc-pin-sticky { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
-                .qc-pin-label { position: absolute; top: 40px; left: 50%; transform: translateX(-50%); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #48677E; white-space: nowrap; }
+                /* PIN SECTION */
+                .l-pin { position: relative; height: 700vh; }
+                .l-pin-sticky { position: sticky; top: 0; height: 100vh; display: grid; place-items: center; overflow: hidden; }
+                .l-pin-eyebrow { position: absolute; top: 36px; left: 52px; font-size: 9px; letter-spacing: .22em; text-transform: uppercase; color: #48677E; }
+                .l-pin-progress { position: absolute; right: 40px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 8px; }
+                .l-pip { width: 4px; height: 4px; border-radius: 50%; background: #48677E; transition: background .3s; }
 
-                .qc-about { padding: 160px 48px; max-width: 1100px; margin: 0 auto; }
-                .qc-about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 100px; align-items: center; }
-                .qc-about-eyebrow { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #48677E; margin: 0 0 20px; }
-                .qc-about-heading { font-size: clamp(32px, 4vw, 52px); font-weight: 300; letter-spacing: -0.02em; line-height: 1.15; margin: 0 0 24px; color: #DDE8F2; }
-                .qc-about-body { font-size: 15px; line-height: 1.8; color: #8FB9D8; margin: 0; font-weight: 300; }
-                .qc-about-stats { display: flex; flex-direction: column; gap: 40px; }
-                .qc-stat-num { font-size: clamp(48px, 6vw, 80px); font-weight: 300; letter-spacing: -0.04em; color: #DDE8F2; line-height: 1; display: block; }
-                .qc-stat-label { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: #48677E; margin-top: 6px; display: block; }
-                .qc-stat-divider { width: 40px; height: 1px; background: rgba(143,185,216,0.2); }
+                /* ABOUT */
+                .l-about { max-width: 1120px; margin: 0 auto; padding: 180px 52px; display: grid; grid-template-columns: 1fr 1fr; gap: 120px; align-items: center; }
+                .l-eyebrow { font-size: 9px; letter-spacing: .22em; text-transform: uppercase; color: #48677E; margin: 0 0 22px; }
+                .l-heading { font-size: clamp(30px, 3.5vw, 52px); font-weight: 300; letter-spacing: -.025em; line-height: 1.12; color: #DDE8F2; margin: 0 0 28px; }
+                .l-body { font-size: 14px; line-height: 1.85; color: #8FB9D8; font-weight: 300; margin: 0; }
+                .l-stats { display: flex; flex-direction: column; gap: 0; }
+                .l-stat { padding: 32px 0; border-bottom: 1px solid rgba(143,185,216,.1); }
+                .l-stat:first-child { border-top: 1px solid rgba(143,185,216,.1); }
+                .l-stat-n { font-size: clamp(44px, 5vw, 72px); font-weight: 300; letter-spacing: -.04em; color: #DDE8F2; line-height: 1; display: block; }
+                .l-stat-l { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #48677E; display: block; margin-top: 8px; }
 
-                .qc-features { padding: 160px 48px; max-width: 1100px; margin: 0 auto; }
-                .qc-features-header { text-align: center; margin-bottom: 100px; }
-                .qc-features-eyebrow { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #48677E; margin: 0 0 16px; }
-                .qc-features-heading { font-size: clamp(32px, 4vw, 52px); font-weight: 300; letter-spacing: -0.02em; color: #DDE8F2; margin: 0; }
-                .qc-features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
-                .qc-feature-card { padding: 48px 40px; border: 1px solid rgba(143,185,216,0.1); background: rgba(9,17,26,0.4); transition: border-color 0.3s, background 0.3s; }
-                .qc-feature-card:hover { border-color: rgba(143,185,216,0.25); background: rgba(9,17,26,0.7); }
-                .qc-feature-num { font-size: 10px; letter-spacing: 0.2em; color: #48677E; margin: 0 0 40px; font-family: monospace; }
-                .qc-feature-title { font-size: 22px; font-weight: 300; color: #DDE8F2; margin: 0 0 16px; letter-spacing: -0.01em; }
-                .qc-feature-body { font-size: 14px; line-height: 1.75; color: #8FB9D8; margin: 0; font-weight: 300; }
-                .qc-feature-icon { width: 48px; height: 48px; margin-bottom: 36px; opacity: 0.6; }
+                /* FEATURES */
+                .l-features { background: #09111A; padding: 180px 52px; }
+                .l-features-inner { max-width: 1120px; margin: 0 auto; }
+                .l-features-hd { margin-bottom: 90px; }
+                .l-features-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: rgba(143,185,216,.08); border: 1px solid rgba(143,185,216,.08); }
+                .l-feat { background: #09111A; padding: 52px 44px 56px; transition: background .3s; }
+                .l-feat:hover { background: rgba(143,185,216,.03); }
+                .l-feat-n { font-size: 9px; letter-spacing: .22em; color: #48677E; font-family: 'Courier New', monospace; margin: 0 0 44px; display: block; }
+                .l-feat-icon { display: block; margin-bottom: 32px; opacity: .55; }
+                .l-feat-title { font-size: 20px; font-weight: 300; letter-spacing: -.01em; color: #DDE8F2; margin: 0 0 14px; }
+                .l-feat-body { font-size: 13px; line-height: 1.8; color: #8FB9D8; font-weight: 300; margin: 0; }
 
-                .qc-manifesto { padding: 200px 48px; text-align: center; position: relative; overflow: hidden; }
-                .qc-manifesto-bg { position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% 50%, rgba(143,185,216,0.04) 0%, transparent 70%); }
-                .qc-manifesto-line { width: 1px; height: 80px; background: linear-gradient(to bottom, transparent, rgba(143,185,216,0.3), transparent); margin: 0 auto 60px; }
-                .qc-manifesto-text { font-size: clamp(28px, 5vw, 64px); font-weight: 300; letter-spacing: -0.02em; line-height: 1.2; color: #DDE8F2; max-width: 900px; margin: 0 auto; }
-                .qc-manifesto-sub { font-size: 15px; color: #8FB9D8; margin: 32px auto 0; max-width: 500px; font-weight: 300; line-height: 1.6; }
+                /* MANIFESTO */
+                .l-manifesto { padding: 220px 52px; text-align: center; position: relative; }
+                .l-manifesto-glow { position: absolute; inset: 0; background: radial-gradient(ellipse 70% 50% at 50% 50%, rgba(143,185,216,.05) 0%, transparent 65%); pointer-events: none; }
+                .l-manifesto-rule { width: 1px; height: 90px; background: linear-gradient(transparent, rgba(143,185,216,.35), transparent); margin: 0 auto 72px; }
+                .l-manifesto-q { font-size: clamp(26px, 4.5vw, 62px); font-weight: 300; letter-spacing: -.025em; line-height: 1.18; color: #DDE8F2; max-width: 860px; margin: 0 auto; }
+                .l-manifesto-sub { font-size: 14px; color: #8FB9D8; margin: 36px auto 0; max-width: 480px; font-weight: 300; line-height: 1.7; }
+                .l-manifesto-rule2 { width: 1px; height: 90px; background: linear-gradient(rgba(143,185,216,.35), transparent); margin: 72px auto 0; }
 
-                .qc-signin { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 24px; position: relative; }
-                .qc-signin-bg { position: absolute; inset: 0; background: radial-gradient(ellipse 60% 50% at 50% 60%, rgba(143,185,216,0.05) 0%, transparent 70%); }
-                .qc-signin-card { position: relative; z-index: 1; width: 100%; max-width: 400px; padding: 56px 48px; border: 1px solid rgba(143,185,216,0.15); background: rgba(9,17,26,0.8); backdrop-filter: blur(20px); }
-                .qc-signin-logo { font-size: 15px; font-weight: 400; letter-spacing: 0.1em; color: #48677E; text-align: center; margin: 0 0 8px; text-transform: uppercase; }
-                .qc-signin-heading { font-size: 26px; font-weight: 300; letter-spacing: -0.01em; color: #DDE8F2; text-align: center; margin: 0 0 6px; }
-                .qc-signin-sub { font-size: 13px; color: #48677E; text-align: center; margin: 0 0 40px; }
-                .qc-google-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 14px; background: #DDE8F2; color: #05080D; font-size: 14px; font-weight: 500; border: none; cursor: pointer; letter-spacing: 0.01em; transition: background 0.2s, transform 0.15s; font-family: inherit; }
-                .qc-google-btn:hover:not(:disabled) { background: #fff; }
-                .qc-google-btn:active:not(:disabled) { transform: scale(0.99); }
-                .qc-google-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-                .qc-divider { display: flex; align-items: center; gap: 16px; margin: 28px 0; }
-                .qc-divider-line { flex: 1; height: 1px; background: rgba(143,185,216,0.12); }
-                .qc-divider-text { font-size: 11px; color: #48677E; letter-spacing: 0.1em; }
-                .qc-input { width: 100%; padding: 14px 16px; background: rgba(5,8,13,0.7); border: 1px solid rgba(143,185,216,0.15); color: #DDE8F2; font-size: 14px; margin-bottom: 12px; font-family: inherit; outline: none; transition: border-color 0.2s; box-sizing: border-box; }
-                .qc-input::placeholder { color: #48677E; }
-                .qc-input:focus { border-color: rgba(143,185,216,0.4); }
-                .qc-submit-btn { width: 100%; padding: 14px; background: transparent; border: 1px solid rgba(143,185,216,0.3); color: #8FB9D8; font-size: 14px; cursor: pointer; font-family: inherit; letter-spacing: 0.04em; transition: border-color 0.2s, color 0.2s, background 0.2s; margin-top: 4px; }
-                .qc-submit-btn:hover { border-color: rgba(143,185,216,0.7); color: #DDE8F2; background: rgba(143,185,216,0.05); }
-                .qc-signin-footer { font-size: 12px; color: #48677E; text-align: center; margin-top: 28px; }
-                .qc-signin-footer button { background: none; border: none; color: #8FB9D8; cursor: pointer; font-size: 12px; font-family: inherit; }
-                .qc-signin-footer button:hover { color: #DDE8F2; }
-                .qc-error { font-size: 12px; color: #e07070; text-align: center; margin-bottom: 16px; }
+                /* SIGN IN */
+                .l-signin { min-height: 100svh; display: grid; place-items: center; padding: 80px 24px; position: relative; background: #05080D; }
+                .l-signin-glow { position: absolute; inset: 0; background: radial-gradient(ellipse 50% 60% at 50% 65%, rgba(143,185,216,.05) 0%, transparent 65%); pointer-events: none; }
+                .l-card { position: relative; z-index: 1; width: 100%; max-width: 420px; padding: 60px 52px; border: 1px solid rgba(143,185,216,.14); background: rgba(9,17,26,.9); backdrop-filter: blur(24px); }
+                .l-card-logo { font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: #48677E; text-align: center; display: block; margin-bottom: 6px; }
+                .l-card-h2 { font-size: 26px; font-weight: 300; letter-spacing: -.02em; color: #DDE8F2; text-align: center; margin: 0 0 6px; }
+                .l-card-sub { font-size: 12px; color: #48677E; letter-spacing: .04em; text-align: center; margin: 0 0 40px; }
+                .l-google { width: 100%; display: flex; align-items: center; justify-content: center; gap: 11px; padding: 13px 20px; background: #DDE8F2; color: #05080D; font-size: 13px; font-weight: 500; border: none; cursor: pointer; font-family: inherit; letter-spacing: .02em; transition: background .2s; }
+                .l-google:hover:not(:disabled) { background: #fff; }
+                .l-google:disabled { opacity: .6; cursor: not-allowed; }
+                .l-divider { display: flex; align-items: center; gap: 14px; margin: 26px 0; }
+                .l-divider-line { flex: 1; height: 1px; background: rgba(143,185,216,.1); }
+                .l-divider-text { font-size: 10px; color: #48677E; letter-spacing: .12em; text-transform: uppercase; }
+                .l-input { width: 100%; display: block; padding: 13px 16px; background: rgba(5,8,13,.8); border: 1px solid rgba(143,185,216,.14); color: #DDE8F2; font-size: 13px; margin-bottom: 10px; font-family: inherit; outline: none; transition: border-color .2s; }
+                .l-input::placeholder { color: #48677E; }
+                .l-input:focus { border-color: rgba(143,185,216,.4); }
+                .l-submit { width: 100%; padding: 13px; background: transparent; border: 1px solid rgba(143,185,216,.25); color: #8FB9D8; font-size: 13px; cursor: pointer; font-family: inherit; letter-spacing: .06em; text-transform: uppercase; margin-top: 4px; transition: border-color .2s, color .2s, background .2s; }
+                .l-submit:hover { border-color: rgba(143,185,216,.55); color: #DDE8F2; background: rgba(143,185,216,.04); }
+                .l-card-foot { font-size: 11px; color: #48677E; text-align: center; margin-top: 30px; }
+                .l-card-foot button { background: none; border: none; color: #8FB9D8; cursor: pointer; font-size: 11px; font-family: inherit; padding: 0; transition: color .2s; }
+                .l-card-foot button:hover { color: #DDE8F2; }
+                .l-error { font-size: 11px; color: #d97070; text-align: center; margin-bottom: 16px; }
 
-                @media (max-width: 700px) {
-                    .qc-nav { padding: 20px 24px; }
-                    .qc-nav-links { display: none; }
-                    .qc-about-grid { grid-template-columns: 1fr; gap: 60px; }
-                    .qc-features-grid { grid-template-columns: 1fr; }
-                    .qc-about, .qc-features, .qc-manifesto { padding: 100px 24px; }
-                    .qc-signin-card { padding: 40px 28px; }
+                @media (max-width: 720px) {
+                    .l-nav { padding: 20px 24px; }
+                    .l-nav-link { display: none; }
+                    .l-about { grid-template-columns: 1fr; gap: 72px; padding: 120px 24px; }
+                    .l-features { padding: 120px 24px; }
+                    .l-features-grid { grid-template-columns: 1fr; }
+                    .l-manifesto { padding: 140px 24px; }
+                    .l-card { padding: 44px 28px; }
                 }
             `}</style>
 
-            {/* NAV */}
-            <nav className="qc-nav">
-                <div className="qc-nav-logo">Quietcasts</div>
-                <div className="qc-nav-links">
-                    <a href="#about" className="qc-nav-link">About</a>
-                    <a href="#features" className="qc-nav-link">Features</a>
-                    <button className="qc-nav-signin" onClick={() => document.getElementById('signin')?.scrollIntoView({ behavior: 'smooth' })}>
-                        Sign in
-                    </button>
+            {/* ── NAV ─────────────────────────────── */}
+            <nav className="l-nav">
+                <span className="l-nav-logo">Quietcasts</span>
+                <div className="l-nav-right">
+                    <button className="l-nav-link" onClick={() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })}>About</button>
+                    <button className="l-nav-link" onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}>Features</button>
+                    <button className="l-nav-cta" onClick={() => document.getElementById('signin')?.scrollIntoView({ behavior: 'smooth' })}>Sign in</button>
                 </div>
             </nav>
 
-            {/* HERO */}
-            <section className="qc-hero">
-                <div className="qc-grid" />
+            {/* ── HERO ────────────────────────────── */}
+            <section className="l-hero">
+                <div className="l-grid" />
+                <div className="l-radial" />
 
-                {/* Animated headphone SVG */}
-                <div ref={heroRef} style={{ marginBottom: 48, position: 'relative', zIndex: 1 }}>
-                    <svg viewBox="0 0 560 340" width="520" height="315" style={{ filter: 'drop-shadow(0 0 80px rgba(143,185,216,0.18))', maxWidth: '90vw', height: 'auto' }}>
-                        <defs>
-                            <linearGradient id="hg1" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stopColor="#DDE8F2" stopOpacity="0.95" />
-                                <stop offset="60%" stopColor="#8FB9D8" stopOpacity="0.7" />
-                                <stop offset="100%" stopColor="#48677E" stopOpacity="0.3" />
-                            </linearGradient>
-                            <radialGradient id="cupGlow" cx="50%" cy="50%" r="50%">
-                                <stop offset="0%" stopColor="#8FB9D8" stopOpacity="0.15" />
-                                <stop offset="100%" stopColor="#8FB9D8" stopOpacity="0" />
-                            </radialGradient>
-                            <filter id="glow">
-                                <feGaussianBlur stdDeviation="2.5" result="b" />
-                                <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
-                            </filter>
-                        </defs>
+                <div className="l-hero-inner">
+                    {/* detailed SVG headphone */}
+                    <div ref={floatRef} style={{ lineHeight: 0 }}>
+                        <svg viewBox="0 0 640 370" width="600" height="346" style={{ filter: 'drop-shadow(0 0 100px rgba(143,185,216,.2))', maxWidth: '88vw', height: 'auto' }} aria-hidden>
+                            <defs>
+                                <linearGradient id="hg" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stopColor="#DDE8F2" stopOpacity=".95" />
+                                    <stop offset="55%" stopColor="#8FB9D8" stopOpacity=".7" />
+                                    <stop offset="100%" stopColor="#48677E" stopOpacity=".3" />
+                                </linearGradient>
+                                <radialGradient id="cg" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stopColor="#8FB9D8" stopOpacity=".18" />
+                                    <stop offset="100%" stopColor="#8FB9D8" stopOpacity="0" />
+                                </radialGradient>
+                                <filter id="gf"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                            </defs>
 
-                        {/* headband arc */}
-                        <path d="M120 155 Q280 48 440 155" stroke="url(#hg1)" strokeWidth="10" fill="none" strokeLinecap="round" filter="url(#glow)" />
-                        <path d="M120 155 Q280 48 440 155" stroke="#DDE8F2" strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.3" strokeDasharray="4 12" />
+                            {/* headband arc + inner shape */}
+                            <path d="M125 175 Q320 52 515 175" stroke="url(#hg)" strokeWidth="13" fill="none" strokeLinecap="round" filter="url(#gf)" />
+                            <path d="M125 175 Q320 52 515 175" stroke="#DDE8F2" strokeWidth="4" fill="none" strokeLinecap="round" opacity=".18" strokeDasharray="6 16" />
+                            <path d="M195 108 Q320 76 445 108" stroke="#8FB9D8" strokeWidth="6" fill="none" strokeLinecap="round" opacity=".4" />
+                            <path d="M220 95 Q320 68 420 95" stroke="#DDE8F2" strokeWidth="2" fill="none" strokeLinecap="round" opacity=".15" />
 
-                        {/* headband top cushion bar */}
-                        <path d="M220 88 Q280 70 340 88" stroke="#8FB9D8" strokeWidth="6" fill="none" strokeLinecap="round" opacity="0.45" />
+                            {/* measurement annotation */}
+                            <line x1="320" y1="52" x2="320" y2="28" stroke="#48677E" strokeWidth="1" />
+                            <line x1="295" y1="28" x2="345" y2="28" stroke="#48677E" strokeWidth="1" />
+                            <text x="352" y="32" fontSize="9" fill="#48677E" fontFamily="monospace" letterSpacing="1">820mm</text>
 
-                        {/* measurement lines */}
-                        <line x1="280" y1="48" x2="280" y2="28" stroke="#48677E" strokeWidth="1" opacity="0.6" />
-                        <line x1="260" y1="28" x2="300" y2="28" stroke="#48677E" strokeWidth="1" opacity="0.6" />
-                        <text x="286" y="23" fontSize="9" fill="#48677E" fontFamily="monospace">820mm</text>
+                            {/* left slider stem */}
+                            <path d="M125 175 L108 258" stroke="#DDE8F2" strokeWidth="7" fill="none" strokeLinecap="round" opacity=".88" />
+                            <path d="M125 175 L108 258" stroke="url(#hg)" strokeWidth="3" fill="none" strokeLinecap="round" opacity=".45" />
+                            <rect x="98" y="222" width="20" height="36" rx="3" fill="none" stroke="#8FB9D8" strokeWidth="1.5" opacity=".4" />
 
-                        {/* left stem */}
-                        <path d="M120 155 L108 230" stroke="#DDE8F2" strokeWidth="6" fill="none" strokeLinecap="round" opacity="0.9" />
-                        <path d="M120 155 L108 230" stroke="url(#hg1)" strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.5" />
-                        {/* right stem */}
-                        <path d="M440 155 L452 230" stroke="#DDE8F2" strokeWidth="6" fill="none" strokeLinecap="round" opacity="0.9" />
-                        <path d="M440 155 L452 230" stroke="url(#hg1)" strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.5" />
+                            {/* right slider stem */}
+                            <path d="M515 175 L532 258" stroke="#DDE8F2" strokeWidth="7" fill="none" strokeLinecap="round" opacity=".88" />
+                            <path d="M515 175 L532 258" stroke="url(#hg)" strokeWidth="3" fill="none" strokeLinecap="round" opacity=".45" />
+                            <rect x="522" y="222" width="20" height="36" rx="3" fill="none" stroke="#8FB9D8" strokeWidth="1.5" opacity=".4" />
 
-                        {/* left hinge */}
-                        <circle cx="110" cy="232" r="9" fill="none" stroke="#DDE8F2" strokeWidth="2.5" opacity="0.9" />
-                        <circle cx="110" cy="232" r="3.5" fill="#DDE8F2" opacity="0.4" />
-                        {/* right hinge */}
-                        <circle cx="450" cy="232" r="9" fill="none" stroke="#DDE8F2" strokeWidth="2.5" opacity="0.9" />
-                        <circle cx="450" cy="232" r="3.5" fill="#DDE8F2" opacity="0.4" />
+                            {/* left hinge */}
+                            <circle cx="108" cy="260" r="12" fill="none" stroke="#DDE8F2" strokeWidth="3" opacity=".9" />
+                            <circle cx="108" cy="260" r="5" fill="none" stroke="#8FB9D8" strokeWidth="1.5" opacity=".6" />
+                            <circle cx="108" cy="260" r="1.5" fill="#DDE8F2" opacity=".5" />
 
-                        {/* left ear cup glow fill */}
-                        <ellipse cx="90" cy="252" rx="50" ry="62" fill="url(#cupGlow)" />
-                        {/* left ear cup outer shell */}
-                        <ellipse cx="90" cy="252" rx="46" ry="60" fill="none" stroke="#DDE8F2" strokeWidth="3.5" opacity="0.88" filter="url(#glow)" />
-                        {/* left ear cup inner lip */}
-                        <ellipse cx="90" cy="252" rx="40" ry="54" fill="none" stroke="#8FB9D8" strokeWidth="1.5" opacity="0.4" />
-                        {/* left cushion ring */}
-                        <ellipse cx="90" cy="262" rx="36" ry="48" fill="none" stroke="#8FB9D8" strokeWidth="2" strokeDasharray="6 6" opacity="0.35" />
-                        {/* left driver circles */}
-                        <circle cx="90" cy="252" r="30" fill="none" stroke="#DDE8F2" strokeWidth="2" opacity="0.7" />
-                        <circle cx="90" cy="252" r="21" fill="none" stroke="#8FB9D8" strokeWidth="1.5" opacity="0.5" />
-                        <circle cx="90" cy="252" r="12" fill="none" stroke="#DDE8F2" strokeWidth="1" opacity="0.4" />
-                        <circle cx="90" cy="252" r="4" fill="#DDE8F2" opacity="0.25" />
-                        {/* left mesh lines */}
-                        <line x1="64" y1="252" x2="116" y2="252" stroke="#8FB9D8" strokeWidth="0.8" opacity="0.2" />
-                        <line x1="90" y1="226" x2="90" y2="278" stroke="#8FB9D8" strokeWidth="0.8" opacity="0.2" />
+                            {/* right hinge */}
+                            <circle cx="532" cy="260" r="12" fill="none" stroke="#DDE8F2" strokeWidth="3" opacity=".9" />
+                            <circle cx="532" cy="260" r="5" fill="none" stroke="#8FB9D8" strokeWidth="1.5" opacity=".6" />
+                            <circle cx="532" cy="260" r="1.5" fill="#DDE8F2" opacity=".5" />
 
-                        {/* right ear cup glow fill */}
-                        <ellipse cx="470" cy="252" rx="50" ry="62" fill="url(#cupGlow)" />
-                        {/* right ear cup outer shell */}
-                        <ellipse cx="470" cy="252" rx="46" ry="60" fill="none" stroke="#DDE8F2" strokeWidth="3.5" opacity="0.88" filter="url(#glow)" />
-                        {/* right ear cup inner lip */}
-                        <ellipse cx="470" cy="252" rx="40" ry="54" fill="none" stroke="#8FB9D8" strokeWidth="1.5" opacity="0.4" />
-                        {/* right cushion ring */}
-                        <ellipse cx="470" cy="262" rx="36" ry="48" fill="none" stroke="#8FB9D8" strokeWidth="2" strokeDasharray="6 6" opacity="0.35" />
-                        {/* right driver circles */}
-                        <circle cx="470" cy="252" r="30" fill="none" stroke="#DDE8F2" strokeWidth="2" opacity="0.7" />
-                        <circle cx="470" cy="252" r="21" fill="none" stroke="#8FB9D8" strokeWidth="1.5" opacity="0.5" />
-                        <circle cx="470" cy="252" r="12" fill="none" stroke="#DDE8F2" strokeWidth="1" opacity="0.4" />
-                        <circle cx="470" cy="252" r="4" fill="#DDE8F2" opacity="0.25" />
-                        {/* right mesh lines */}
-                        <line x1="444" y1="252" x2="496" y2="252" stroke="#8FB9D8" strokeWidth="0.8" opacity="0.2" />
-                        <line x1="470" y1="226" x2="470" y2="278" stroke="#8FB9D8" strokeWidth="0.8" opacity="0.2" />
+                            {/* left cup glow bg */}
+                            <ellipse cx="84" cy="290" rx="60" ry="68" fill="url(#cg)" />
+                            {/* left cup outer */}
+                            <ellipse cx="84" cy="290" rx="58" ry="68" fill="none" stroke="#DDE8F2" strokeWidth="4" opacity=".88" filter="url(#gf)" />
+                            {/* left cup inner rim */}
+                            <ellipse cx="84" cy="290" rx="50" ry="60" fill="none" stroke="#8FB9D8" strokeWidth="2" opacity=".35" />
+                            {/* left cushion dashed ring */}
+                            <ellipse cx="84" cy="298" rx="44" ry="53" fill="none" stroke="#8FB9D8" strokeWidth="2" strokeDasharray="6 8" opacity=".3" />
+                            {/* left driver rings */}
+                            <circle cx="84" cy="290" r="36" fill="none" stroke="#DDE8F2" strokeWidth="2.5" opacity=".75" />
+                            <circle cx="84" cy="290" r="26" fill="none" stroke="#8FB9D8" strokeWidth="2" opacity=".5" />
+                            <circle cx="84" cy="290" r="16" fill="none" stroke="#DDE8F2" strokeWidth="1.5" opacity=".4" />
+                            <circle cx="84" cy="290" r="6" fill="none" stroke="#8FB9D8" strokeWidth="1" opacity=".5" />
+                            <circle cx="84" cy="290" r="2" fill="#DDE8F2" opacity=".35" />
+                            {/* left mesh crosshairs */}
+                            <line x1="48" y1="290" x2="120" y2="290" stroke="#8FB9D8" strokeWidth="0.7" opacity=".18" />
+                            <line x1="84" y1="254" x2="84" y2="326" stroke="#8FB9D8" strokeWidth="0.7" opacity=".18" />
+                            <line x1="58" y1="265" x2="110" y2="315" stroke="#8FB9D8" strokeWidth="0.5" opacity=".12" />
+                            <line x1="110" y1="265" x2="58" y2="315" stroke="#8FB9D8" strokeWidth="0.5" opacity=".12" />
 
-                        {/* corner annotation marks */}
-                        <line x1="36" y1="192" x2="36" y2="320" stroke="#48677E" strokeWidth="0.8" opacity="0.5" />
-                        <line x1="30" y1="192" x2="42" y2="192" stroke="#48677E" strokeWidth="0.8" opacity="0.5" />
-                        <line x1="30" y1="320" x2="42" y2="320" stroke="#48677E" strokeWidth="0.8" opacity="0.5" />
-                        <text x="16" y="263" fontSize="8" fill="#48677E" fontFamily="monospace" transform="rotate(-90,16,263)">H: 90mm</text>
-                    </svg>
+                            {/* right cup glow bg */}
+                            <ellipse cx="556" cy="290" rx="60" ry="68" fill="url(#cg)" />
+                            {/* right cup outer */}
+                            <ellipse cx="556" cy="290" rx="58" ry="68" fill="none" stroke="#DDE8F2" strokeWidth="4" opacity=".88" filter="url(#gf)" />
+                            {/* right cup inner rim */}
+                            <ellipse cx="556" cy="290" rx="50" ry="60" fill="none" stroke="#8FB9D8" strokeWidth="2" opacity=".35" />
+                            {/* right cushion dashed ring */}
+                            <ellipse cx="556" cy="298" rx="44" ry="53" fill="none" stroke="#8FB9D8" strokeWidth="2" strokeDasharray="6 8" opacity=".3" />
+                            {/* right driver rings */}
+                            <circle cx="556" cy="290" r="36" fill="none" stroke="#DDE8F2" strokeWidth="2.5" opacity=".75" />
+                            <circle cx="556" cy="290" r="26" fill="none" stroke="#8FB9D8" strokeWidth="2" opacity=".5" />
+                            <circle cx="556" cy="290" r="16" fill="none" stroke="#DDE8F2" strokeWidth="1.5" opacity=".4" />
+                            <circle cx="556" cy="290" r="6" fill="none" stroke="#8FB9D8" strokeWidth="1" opacity=".5" />
+                            <circle cx="556" cy="290" r="2" fill="#DDE8F2" opacity=".35" />
+                            {/* right mesh crosshairs */}
+                            <line x1="520" y1="290" x2="592" y2="290" stroke="#8FB9D8" strokeWidth="0.7" opacity=".18" />
+                            <line x1="556" y1="254" x2="556" y2="326" stroke="#8FB9D8" strokeWidth="0.7" opacity=".18" />
+                            <line x1="530" y1="265" x2="582" y2="315" stroke="#8FB9D8" strokeWidth="0.5" opacity=".12" />
+                            <line x1="582" y1="265" x2="530" y2="315" stroke="#8FB9D8" strokeWidth="0.5" opacity=".12" />
+
+                            {/* side annotation marks */}
+                            <line x1="16" y1="222" x2="16" y2="358" stroke="#48677E" strokeWidth=".8" opacity=".5" />
+                            <line x1="10" y1="222" x2="22" y2="222" stroke="#48677E" strokeWidth=".8" opacity=".5" />
+                            <line x1="10" y1="358" x2="22" y2="358" stroke="#48677E" strokeWidth=".8" opacity=".5" />
+                            <text x="5" y="298" fontSize="8" fill="#48677E" fontFamily="monospace" transform="rotate(-90 5 298)">H: 136mm</text>
+
+                            <line x1="26" y1="358" x2="142" y2="358" stroke="#48677E" strokeWidth=".8" opacity=".35" />
+                            <line x1="26" y1="352" x2="26" y2="364" stroke="#48677E" strokeWidth=".8" opacity=".35" />
+                            <line x1="142" y1="352" x2="142" y2="364" stroke="#48677E" strokeWidth=".8" opacity=".35" />
+                            <text x="60" y="370" fontSize="8" fill="#48677E" fontFamily="monospace" letterSpacing="1">W: 116mm</text>
+                        </svg>
+                    </div>
+
+                    <h1 className="l-hero-h1">Quietcasts</h1>
+                    <p className="l-hero-sub">A calmer place for curious minds.</p>
+                    <p className="l-hero-meta">Podcasts for deeper thinking — wherever you are</p>
                 </div>
 
-                <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', padding: '0 24px' }}>
-                    <h1 className="qc-hero-title">Quietcasts</h1>
-                    <p className="qc-hero-sub">A calmer place for curious minds.</p>
-                    <p className="qc-hero-desc">Podcasts for deeper thinking — wherever you are</p>
-                </div>
-
-                <div className="qc-scroll-hint">
+                <div className="l-scroll-cue">
                     <span>Scroll to explore</span>
-                    <div className="qc-scroll-line" />
+                    <div className="l-scroll-track" />
                 </div>
             </section>
 
-            {/* SCROLL-DRIVEN DISASSEMBLY */}
-            <div ref={pinRef} className="qc-pin">
-                <div className="qc-pin-sticky">
-                    <div className="qc-grid" style={{ opacity: 0.02 }} />
-                    <div className="qc-pin-label">01 — ANATOMY</div>
+            {/* ── SCROLL-DRIVEN DISASSEMBLY ────────── */}
+            <div ref={pinRef} className="l-pin">
+                <div className="l-pin-sticky">
+                    <div className="l-grid" style={{ opacity: .018 }} />
+                    <div className="l-radial" style={{ opacity: .5 }} />
+                    <span className="l-pin-eyebrow">01 — Anatomy of sound</span>
 
-                    <svg viewBox="0 0 680 540" style={{ width: '90vw', maxWidth: 720, height: 'auto', filter: 'drop-shadow(0 0 100px rgba(143,185,216,0.1))' }}>
+                    <svg viewBox="0 0 820 640" style={{ width: '88vw', maxWidth: 860, height: 'auto', filter: 'drop-shadow(0 0 120px rgba(143,185,216,.1))' }} aria-hidden>
                         <defs>
-                            <linearGradient id="dg1" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stopColor="#DDE8F2" stopOpacity="0.9" />
-                                <stop offset="60%" stopColor="#8FB9D8" stopOpacity="0.6" />
-                                <stop offset="100%" stopColor="#48677E" stopOpacity="0.25" />
+                            <linearGradient id="dg" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stopColor="#DDE8F2" stopOpacity=".92" />
+                                <stop offset="55%" stopColor="#8FB9D8" stopOpacity=".62" />
+                                <stop offset="100%" stopColor="#48677E" stopOpacity=".22" />
                             </linearGradient>
-                            <radialGradient id="driverGlow" cx="50%" cy="50%" r="50%">
-                                <stop offset="0%" stopColor="#8FB9D8" stopOpacity="0.2" />
+                            <radialGradient id="dcg" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stopColor="#8FB9D8" stopOpacity=".2" />
                                 <stop offset="100%" stopColor="#8FB9D8" stopOpacity="0" />
                             </radialGradient>
-                            <filter id="glow2">
-                                <feGaussianBlur stdDeviation="2" result="b" />
-                                <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
-                            </filter>
+                            <filter id="dgf"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
                         </defs>
 
-                        {/* ─── HEADBAND ─── */}
+                        {/* ── HEADBAND ── */}
                         <g ref={headbandRef}>
-                            <path d="M140 155 Q340 60 540 155" stroke="url(#dg1)" strokeWidth="11" fill="none" strokeLinecap="round" filter="url(#glow2)" />
-                            <path d="M140 155 Q340 60 540 155" stroke="#DDE8F2" strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.25" strokeDasharray="5 14" />
-                            <path d="M240 98 Q340 72 440 98" stroke="#8FB9D8" strokeWidth="5.5" fill="none" strokeLinecap="round" opacity="0.4" />
+                            <path d="M148 195 Q410 72 672 195" stroke="url(#dg)" strokeWidth="14" fill="none" strokeLinecap="round" filter="url(#dgf)" />
+                            <path d="M148 195 Q410 72 672 195" stroke="#DDE8F2" strokeWidth="4" fill="none" strokeLinecap="round" opacity=".16" strokeDasharray="6 18" />
+                            <g ref={padRef}>
+                                <path d="M255 128 Q410 90 565 128" stroke="#8FB9D8" strokeWidth="7" fill="none" strokeLinecap="round" opacity=".38" />
+                                <path d="M280 115 Q410 82 540 115" stroke="#DDE8F2" strokeWidth="2.5" fill="none" strokeLinecap="round" opacity=".16" />
+                            </g>
                         </g>
 
-                        {/* ─── LEFT HINGE ─── */}
+                        {/* ── MEASURE ── */}
+                        <g ref={measureRef}>
+                            <line x1="410" y1="72" x2="410" y2="46" stroke="#48677E" strokeWidth=".9" />
+                            <line x1="380" y1="46" x2="440" y2="46" stroke="#48677E" strokeWidth=".9" />
+                            <text x="448" y="50" fontSize="9.5" fill="#48677E" fontFamily="monospace" letterSpacing="1.5">820mm</text>
+                        </g>
+
+                        {/* ── LEFT STEM + SLIDER ── */}
+                        <g ref={leftStemRef}>
+                            <path d="M148 195 L128 290" stroke="#DDE8F2" strokeWidth="8" fill="none" strokeLinecap="round" opacity=".88" />
+                            <path d="M148 195 L128 290" stroke="url(#dg)" strokeWidth="3.5" fill="none" strokeLinecap="round" opacity=".45" />
+                            <rect x="116" y="252" width="24" height="40" rx="4" fill="none" stroke="#8FB9D8" strokeWidth="1.8" opacity=".4" />
+                            <line x1="122" y1="268" x2="134" y2="268" stroke="#8FB9D8" strokeWidth="1" opacity=".3" />
+                            <line x1="122" y1="276" x2="134" y2="276" stroke="#8FB9D8" strokeWidth="1" opacity=".3" />
+                        </g>
+
+                        {/* ── RIGHT STEM + SLIDER ── */}
+                        <g ref={rightStemRef}>
+                            <path d="M672 195 L692 290" stroke="#DDE8F2" strokeWidth="8" fill="none" strokeLinecap="round" opacity=".88" />
+                            <path d="M672 195 L692 290" stroke="url(#dg)" strokeWidth="3.5" fill="none" strokeLinecap="round" opacity=".45" />
+                            <rect x="680" y="252" width="24" height="40" rx="4" fill="none" stroke="#8FB9D8" strokeWidth="1.8" opacity=".4" />
+                            <line x1="686" y1="268" x2="698" y2="268" stroke="#8FB9D8" strokeWidth="1" opacity=".3" />
+                            <line x1="686" y1="276" x2="698" y2="276" stroke="#8FB9D8" strokeWidth="1" opacity=".3" />
+                        </g>
+
+                        {/* ── LEFT HINGE ── */}
                         <g ref={leftHingeRef}>
-                            <path d="M140 155 L126 230" stroke="#DDE8F2" strokeWidth="7" fill="none" strokeLinecap="round" opacity="0.9" />
-                            <circle cx="128" cy="232" r="11" fill="none" stroke="#DDE8F2" strokeWidth="3" opacity="0.9" />
-                            <circle cx="128" cy="232" r="4" fill="#DDE8F2" opacity="0.35" />
+                            <circle cx="130" cy="292" r="14" fill="none" stroke="#DDE8F2" strokeWidth="3.5" opacity=".9" />
+                            <circle cx="130" cy="292" r="6" fill="none" stroke="#8FB9D8" strokeWidth="2" opacity=".6" />
+                            <circle cx="130" cy="292" r="1.8" fill="#DDE8F2" opacity=".5" />
                         </g>
 
-                        {/* ─── RIGHT HINGE ─── */}
+                        {/* ── RIGHT HINGE ── */}
                         <g ref={rightHingeRef}>
-                            <path d="M540 155 L554 230" stroke="#DDE8F2" strokeWidth="7" fill="none" strokeLinecap="round" opacity="0.9" />
-                            <circle cx="552" cy="232" r="11" fill="none" stroke="#DDE8F2" strokeWidth="3" opacity="0.9" />
-                            <circle cx="552" cy="232" r="4" fill="#DDE8F2" opacity="0.35" />
+                            <circle cx="690" cy="292" r="14" fill="none" stroke="#DDE8F2" strokeWidth="3.5" opacity=".9" />
+                            <circle cx="690" cy="292" r="6" fill="none" stroke="#8FB9D8" strokeWidth="2" opacity=".6" />
+                            <circle cx="690" cy="292" r="1.8" fill="#DDE8F2" opacity=".5" />
                         </g>
 
-                        {/* ─── LEFT EAR CUP ─── */}
+                        {/* ── LEFT EAR CUP ── */}
                         <g ref={leftCupRef}>
-                            <ellipse cx="108" cy="256" rx="54" ry="68" fill="url(#driverGlow)" />
-                            <ellipse cx="108" cy="256" rx="52" ry="68" fill="none" stroke="#DDE8F2" strokeWidth="4" opacity="0.88" filter="url(#glow2)" />
-                            <ellipse cx="108" cy="256" rx="46" ry="62" fill="none" stroke="#8FB9D8" strokeWidth="1.5" opacity="0.35" />
+                            <ellipse cx="100" cy="330" rx="64" ry="80" fill="url(#dcg)" />
+                            <ellipse cx="100" cy="330" rx="62" ry="80" fill="none" stroke="#DDE8F2" strokeWidth="4.5" opacity=".88" filter="url(#dgf)" />
+                            <ellipse cx="100" cy="330" rx="54" ry="72" fill="none" stroke="#8FB9D8" strokeWidth="2" opacity=".3" />
                         </g>
 
-                        {/* ─── RIGHT EAR CUP ─── */}
+                        {/* ── RIGHT EAR CUP ── */}
                         <g ref={rightCupRef}>
-                            <ellipse cx="572" cy="256" rx="54" ry="68" fill="url(#driverGlow)" />
-                            <ellipse cx="572" cy="256" rx="52" ry="68" fill="none" stroke="#DDE8F2" strokeWidth="4" opacity="0.88" filter="url(#glow2)" />
-                            <ellipse cx="572" cy="256" rx="46" ry="62" fill="none" stroke="#8FB9D8" strokeWidth="1.5" opacity="0.35" />
+                            <ellipse cx="720" cy="330" rx="64" ry="80" fill="url(#dcg)" />
+                            <ellipse cx="720" cy="330" rx="62" ry="80" fill="none" stroke="#DDE8F2" strokeWidth="4.5" opacity=".88" filter="url(#dgf)" />
+                            <ellipse cx="720" cy="330" rx="54" ry="72" fill="none" stroke="#8FB9D8" strokeWidth="2" opacity=".3" />
                         </g>
 
-                        {/* ─── LEFT DRIVER ─── */}
-                        <g ref={leftDriverRef}>
-                            <circle cx="108" cy="256" r="38" fill="none" stroke="#DDE8F2" strokeWidth="2.5" opacity="0.8" />
-                            <circle cx="108" cy="256" r="27" fill="none" stroke="#8FB9D8" strokeWidth="2" opacity="0.55" />
-                            <circle cx="108" cy="256" r="16" fill="none" stroke="#DDE8F2" strokeWidth="1.5" opacity="0.45" />
-                            <circle cx="108" cy="256" r="6" fill="#DDE8F2" opacity="0.22" />
-                            <line x1="75" y1="256" x2="141" y2="256" stroke="#8FB9D8" strokeWidth="0.7" opacity="0.2" />
-                            <line x1="108" y1="223" x2="108" y2="289" stroke="#8FB9D8" strokeWidth="0.7" opacity="0.2" />
-                        </g>
-
-                        {/* ─── RIGHT DRIVER ─── */}
-                        <g ref={rightDriverRef}>
-                            <circle cx="572" cy="256" r="38" fill="none" stroke="#DDE8F2" strokeWidth="2.5" opacity="0.8" />
-                            <circle cx="572" cy="256" r="27" fill="none" stroke="#8FB9D8" strokeWidth="2" opacity="0.55" />
-                            <circle cx="572" cy="256" r="16" fill="none" stroke="#DDE8F2" strokeWidth="1.5" opacity="0.45" />
-                            <circle cx="572" cy="256" r="6" fill="#DDE8F2" opacity="0.22" />
-                            <line x1="539" y1="256" x2="605" y2="256" stroke="#8FB9D8" strokeWidth="0.7" opacity="0.2" />
-                            <line x1="572" y1="223" x2="572" y2="289" stroke="#8FB9D8" strokeWidth="0.7" opacity="0.2" />
-                        </g>
-
-                        {/* ─── LEFT CUSHION ─── */}
+                        {/* ── LEFT CUSHION ── */}
                         <g ref={leftCushionRef}>
-                            <ellipse cx="108" cy="270" rx="48" ry="60" fill="none" stroke="#8FB9D8" strokeWidth="3" strokeDasharray="7 7" opacity="0.55" />
+                            <ellipse cx="100" cy="342" rx="56" ry="70" fill="none" stroke="#8FB9D8" strokeWidth="3" strokeDasharray="8 8" opacity=".52" />
                         </g>
 
-                        {/* ─── RIGHT CUSHION ─── */}
+                        {/* ── RIGHT CUSHION ── */}
                         <g ref={rightCushionRef}>
-                            <ellipse cx="572" cy="270" rx="48" ry="60" fill="none" stroke="#8FB9D8" strokeWidth="3" strokeDasharray="7 7" opacity="0.55" />
+                            <ellipse cx="720" cy="342" rx="56" ry="70" fill="none" stroke="#8FB9D8" strokeWidth="3" strokeDasharray="8 8" opacity=".52" />
                         </g>
 
-                        {/* ─── PCB ─── */}
+                        {/* ── LEFT DRIVER ── */}
+                        <g ref={leftDriverRef}>
+                            <circle cx="100" cy="330" r="44" fill="none" stroke="#DDE8F2" strokeWidth="2.8" opacity=".8" />
+                            <circle cx="100" cy="330" r="32" fill="none" stroke="#8FB9D8" strokeWidth="2" opacity=".55" />
+                            <circle cx="100" cy="330" r="20" fill="none" stroke="#DDE8F2" strokeWidth="1.5" opacity=".42" />
+                            <circle cx="100" cy="330" r="10" fill="none" stroke="#8FB9D8" strokeWidth="1" opacity=".4" />
+                            <circle cx="100" cy="330" r="3" fill="#DDE8F2" opacity=".28" />
+                        </g>
+
+                        {/* ── RIGHT DRIVER ── */}
+                        <g ref={rightDriverRef}>
+                            <circle cx="720" cy="330" r="44" fill="none" stroke="#DDE8F2" strokeWidth="2.8" opacity=".8" />
+                            <circle cx="720" cy="330" r="32" fill="none" stroke="#8FB9D8" strokeWidth="2" opacity=".55" />
+                            <circle cx="720" cy="330" r="20" fill="none" stroke="#DDE8F2" strokeWidth="1.5" opacity=".42" />
+                            <circle cx="720" cy="330" r="10" fill="none" stroke="#8FB9D8" strokeWidth="1" opacity=".4" />
+                            <circle cx="720" cy="330" r="3" fill="#DDE8F2" opacity=".28" />
+                        </g>
+
+                        {/* ── LEFT MESH ── */}
+                        <g ref={leftMeshRef}>
+                            <line x1="56" y1="330" x2="144" y2="330" stroke="#8FB9D8" strokeWidth=".9" opacity=".22" />
+                            <line x1="100" y1="286" x2="100" y2="374" stroke="#8FB9D8" strokeWidth=".9" opacity=".22" />
+                            <line x1="68" y1="298" x2="132" y2="362" stroke="#8FB9D8" strokeWidth=".6" opacity=".14" />
+                            <line x1="132" y1="298" x2="68" y2="362" stroke="#8FB9D8" strokeWidth=".6" opacity=".14" />
+                        </g>
+
+                        {/* ── RIGHT MESH ── */}
+                        <g ref={rightMeshRef}>
+                            <line x1="676" y1="330" x2="764" y2="330" stroke="#8FB9D8" strokeWidth=".9" opacity=".22" />
+                            <line x1="720" y1="286" x2="720" y2="374" stroke="#8FB9D8" strokeWidth=".9" opacity=".22" />
+                            <line x1="688" y1="298" x2="752" y2="362" stroke="#8FB9D8" strokeWidth=".6" opacity=".14" />
+                            <line x1="752" y1="298" x2="688" y2="362" stroke="#8FB9D8" strokeWidth=".6" opacity=".14" />
+                        </g>
+
+                        {/* ── SCREWS ── */}
+                        <g ref={screwsRef} opacity="0">
+                            <circle cx="340" cy="460" r="6" fill="none" stroke="#DDE8F2" strokeWidth="1.5" opacity=".7" />
+                            <line x1="337" y1="460" x2="343" y2="460" stroke="#DDE8F2" strokeWidth="1" opacity=".5" />
+                            <line x1="340" y1="457" x2="340" y2="463" stroke="#DDE8F2" strokeWidth="1" opacity=".5" />
+                            <circle cx="480" cy="460" r="6" fill="none" stroke="#DDE8F2" strokeWidth="1.5" opacity=".7" />
+                            <line x1="477" y1="460" x2="483" y2="460" stroke="#DDE8F2" strokeWidth="1" opacity=".5" />
+                            <line x1="480" y1="457" x2="480" y2="463" stroke="#DDE8F2" strokeWidth="1" opacity=".5" />
+                        </g>
+
+                        {/* ── PCB ── */}
                         <g ref={pcbRef} opacity="0">
-                            <rect x="290" y="400" width="100" height="64" rx="4" fill="none" stroke="#8FB9D8" strokeWidth="1.5" opacity="0.5" />
-                            <circle cx="305" cy="416" r="4" fill="none" stroke="#DDE8F2" strokeWidth="1.5" opacity="0.7" />
-                            <circle cx="320" cy="428" r="4" fill="none" stroke="#DDE8F2" strokeWidth="1.5" opacity="0.7" />
-                            <circle cx="360" cy="420" r="4" fill="none" stroke="#DDE8F2" strokeWidth="1.5" opacity="0.7" />
-                            <line x1="305" y1="416" x2="320" y2="428" stroke="#8FB9D8" strokeWidth="0.8" opacity="0.4" />
-                            <line x1="320" y1="428" x2="360" y2="420" stroke="#8FB9D8" strokeWidth="0.8" opacity="0.4" />
+                            <rect x="340" y="490" width="140" height="86" rx="5" fill="none" stroke="#8FB9D8" strokeWidth="1.8" opacity=".5" />
+                            <circle cx="360" cy="508" r="5" fill="none" stroke="#DDE8F2" strokeWidth="1.5" opacity=".7" />
+                            <circle cx="382" cy="524" r="5" fill="none" stroke="#DDE8F2" strokeWidth="1.5" opacity=".7" />
+                            <circle cx="440" cy="514" r="5" fill="none" stroke="#DDE8F2" strokeWidth="1.5" opacity=".7" />
+                            <circle cx="462" cy="530" r="5" fill="none" stroke="#DDE8F2" strokeWidth="1.5" opacity=".7" />
+                            <line x1="360" y1="508" x2="382" y2="524" stroke="#8FB9D8" strokeWidth=".9" opacity=".4" />
+                            <line x1="382" y1="524" x2="440" y2="514" stroke="#8FB9D8" strokeWidth=".9" opacity=".4" />
+                            <line x1="440" y1="514" x2="462" y2="530" stroke="#8FB9D8" strokeWidth=".9" opacity=".4" />
                         </g>
 
-                        {/* ─── LABELS ─── */}
-                        <g ref={label1Ref} opacity="0">
-                            <line x1="340" y1="60" x2="340" y2="40" stroke="#48677E" strokeWidth="0.8" />
-                            <text x="346" y="36" fontSize="9" fill="#48677E" fontFamily="monospace" letterSpacing="1.5">HEADBAND</text>
-                        </g>
-                        <g ref={label2Ref} opacity="0">
-                            <line x1="30" y1="155" x2="10" y2="155" stroke="#48677E" strokeWidth="0.8" />
-                            <text x="0" y="143" fontSize="9" fill="#48677E" fontFamily="monospace" letterSpacing="1.5">HINGE</text>
-                        </g>
-                        <g ref={label3Ref} opacity="0">
-                            <line x1="40" y1="200" x2="20" y2="200" stroke="#48677E" strokeWidth="0.8" />
-                            <text x="0" y="188" fontSize="9" fill="#48677E" fontFamily="monospace" letterSpacing="1.5">EAR CUP</text>
-                        </g>
-                        <g ref={label4Ref} opacity="0">
-                            <line x1="44" y1="256" x2="24" y2="256" stroke="#48677E" strokeWidth="0.8" />
-                            <text x="0" y="244" fontSize="9" fill="#48677E" fontFamily="monospace" letterSpacing="1.5">DRIVER</text>
-                        </g>
-                        <g ref={label5Ref} opacity="0">
-                            <line x1="340" y1="400" x2="340" y2="390" stroke="#48677E" strokeWidth="0.8" />
-                            <text x="300" y="386" fontSize="9" fill="#48677E" fontFamily="monospace" letterSpacing="1.5">PCB / CIRCUIT</text>
+                        {/* ── LABELS ── */}
+                        <g ref={labelsRef} opacity="0">
+                            <text x="420" y="60" fontSize="9.5" fill="#48677E" fontFamily="monospace" letterSpacing="2" textAnchor="middle">HEADBAND</text>
+                            <text x="60" y="278" fontSize="9.5" fill="#48677E" fontFamily="monospace" letterSpacing="2">HINGE</text>
+                            <text x="18" y="322" fontSize="9.5" fill="#48677E" fontFamily="monospace" letterSpacing="2">EAR CUP</text>
+                            <text x="18" y="420" fontSize="9.5" fill="#48677E" fontFamily="monospace" letterSpacing="2">DRIVER</text>
+                            <text x="350" y="486" fontSize="9.5" fill="#48677E" fontFamily="monospace" letterSpacing="2">FASTENERS</text>
+                            <text x="348" y="596" fontSize="9.5" fill="#48677E" fontFamily="monospace" letterSpacing="2">PCB / CIRCUIT</text>
+                            <text x="18" y="480" fontSize="9.5" fill="#48677E" fontFamily="monospace" letterSpacing="2">MEMORY FOAM</text>
                         </g>
                     </svg>
                 </div>
             </div>
 
-            {/* ABOUT */}
-            <section id="about" style={{ background: '#05080D' }}>
-                <div className="qc-about">
-                    <div className="qc-about-grid">
-                        <div>
-                            <p className="qc-about-eyebrow">About Quietcasts</p>
-                            <h2 className="qc-about-heading">Built around how you actually listen.</h2>
-                            <p className="qc-about-body">Most podcast apps optimise for discovery metrics. Quietcasts optimises for depth. We built a space where subscriptions persist across devices, listening history is yours to keep, and the interface never gets in the way of the story.</p>
+            {/* ── ABOUT ────────────────────────────── */}
+            <section style={{ background: '#05080D' }} id="about">
+                <div className="l-about">
+                    <div>
+                        <p className="l-eyebrow">About Quietcasts</p>
+                        <h2 className="l-heading">Built around how you actually listen.</h2>
+                        <p className="l-body">Most apps optimise for discovery metrics. Quietcasts optimises for depth. A space where subscriptions persist, history is yours to keep, and the interface never interrupts the story.</p>
+                    </div>
+                    <div className="l-stats">
+                        <div className="l-stat">
+                            <span className="l-stat-n">∞</span>
+                            <span className="l-stat-l">Podcasts supported</span>
                         </div>
-                        <div className="qc-about-stats">
-                            <div>
-                                <span className="qc-stat-num">∞</span>
-                                <span className="qc-stat-label">Podcasts supported</span>
-                            </div>
-                            <div className="qc-stat-divider" />
-                            <div>
-                                <span className="qc-stat-num">100%</span>
-                                <span className="qc-stat-label">Your data. Your library.</span>
-                            </div>
-                            <div className="qc-stat-divider" />
-                            <div>
-                                <span className="qc-stat-num">0</span>
-                                <span className="qc-stat-label">Algorithmic distractions</span>
-                            </div>
+                        <div className="l-stat">
+                            <span className="l-stat-n">100%</span>
+                            <span className="l-stat-l">Your data. Your library.</span>
+                        </div>
+                        <div className="l-stat">
+                            <span className="l-stat-n">0</span>
+                            <span className="l-stat-l">Algorithmic distractions</span>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* FEATURES */}
-            <section id="features" style={{ background: '#09111A' }}>
-                <div className="qc-features">
-                    <div className="qc-features-header">
-                        <p className="qc-features-eyebrow">02 — Features</p>
-                        <h2 className="qc-features-heading">Everything you need.<br />Nothing you don't.</h2>
+            {/* ── FEATURES ─────────────────────────── */}
+            <section className="l-features" id="features">
+                <div className="l-features-inner">
+                    <div className="l-features-hd">
+                        <p className="l-eyebrow">02 — Features</p>
+                        <h2 className="l-heading" style={{ margin: 0 }}>Everything you need.<br />Nothing you don't.</h2>
                     </div>
-                    <div className="qc-features-grid">
-                        <div className="qc-feature-card">
-                            <p className="qc-feature-num">01</p>
-                            <svg className="qc-feature-icon" viewBox="0 0 48 48" fill="none">
-                                <circle cx="24" cy="24" r="18" stroke="#8FB9D8" strokeWidth="1.5" />
-                                <circle cx="24" cy="24" r="10" stroke="#DDE8F2" strokeWidth="1.5" />
-                                <line x1="24" y1="6" x2="24" y2="14" stroke="#8FB9D8" strokeWidth="1.5" />
-                                <line x1="24" y1="34" x2="24" y2="42" stroke="#8FB9D8" strokeWidth="1.5" />
-                                <line x1="6" y1="24" x2="14" y2="24" stroke="#8FB9D8" strokeWidth="1.5" />
-                                <line x1="34" y1="24" x2="42" y2="24" stroke="#8FB9D8" strokeWidth="1.5" />
+                    <div className="l-features-grid">
+                        <div className="l-feat">
+                            <span className="l-feat-n">01</span>
+                            <svg className="l-feat-icon" width="44" height="44" viewBox="0 0 44 44" fill="none" aria-hidden>
+                                <circle cx="22" cy="22" r="16" stroke="#8FB9D8" strokeWidth="1.4" />
+                                <circle cx="22" cy="22" r="9" stroke="#DDE8F2" strokeWidth="1.4" />
+                                <line x1="22" y1="6" x2="22" y2="13" stroke="#8FB9D8" strokeWidth="1.4" />
+                                <line x1="22" y1="31" x2="22" y2="38" stroke="#8FB9D8" strokeWidth="1.4" />
+                                <line x1="6" y1="22" x2="13" y2="22" stroke="#8FB9D8" strokeWidth="1.4" />
+                                <line x1="31" y1="22" x2="38" y2="22" stroke="#8FB9D8" strokeWidth="1.4" />
                             </svg>
-                            <h3 className="qc-feature-title">Discover</h3>
-                            <p className="qc-feature-body">Find podcasts that actually match your thinking. Search the entire Apple Podcasts catalogue. No algorithmic manipulation.</p>
+                            <h3 className="l-feat-title">Discover</h3>
+                            <p className="l-feat-body">Find podcasts that match your thinking. Search the full Apple catalogue. No algorithmic manipulation, no dark patterns.</p>
                         </div>
-                        <div className="qc-feature-card">
-                            <p className="qc-feature-num">02</p>
-                            <svg className="qc-feature-icon" viewBox="0 0 48 48" fill="none">
-                                <rect x="10" y="8" width="28" height="36" rx="2" stroke="#DDE8F2" strokeWidth="1.5" />
-                                <line x1="16" y1="18" x2="32" y2="18" stroke="#8FB9D8" strokeWidth="1.5" />
-                                <line x1="16" y1="25" x2="32" y2="25" stroke="#8FB9D8" strokeWidth="1.5" />
-                                <line x1="16" y1="32" x2="24" y2="32" stroke="#8FB9D8" strokeWidth="1.5" />
+                        <div className="l-feat">
+                            <span className="l-feat-n">02</span>
+                            <svg className="l-feat-icon" width="44" height="44" viewBox="0 0 44 44" fill="none" aria-hidden>
+                                <rect x="9" y="7" width="26" height="32" rx="2" stroke="#DDE8F2" strokeWidth="1.4" />
+                                <line x1="15" y1="16" x2="29" y2="16" stroke="#8FB9D8" strokeWidth="1.4" />
+                                <line x1="15" y1="22" x2="29" y2="22" stroke="#8FB9D8" strokeWidth="1.4" />
+                                <line x1="15" y1="28" x2="22" y2="28" stroke="#8FB9D8" strokeWidth="1.4" />
                             </svg>
-                            <h3 className="qc-feature-title">Save</h3>
-                            <p className="qc-feature-body">Keep stories worth returning to. Download episodes offline. Your subscriptions and history sync across every device.</p>
+                            <h3 className="l-feat-title">Save</h3>
+                            <p className="l-feat-body">Download episodes for offline listening. Subscriptions and progress sync automatically across all your devices.</p>
                         </div>
-                        <div className="qc-feature-card">
-                            <p className="qc-feature-num">03</p>
-                            <svg className="qc-feature-icon" viewBox="0 0 48 48" fill="none">
-                                <circle cx="24" cy="24" r="14" stroke="#DDE8F2" strokeWidth="1.5" />
-                                <polygon points="21,18 33,24 21,30" fill="#8FB9D8" opacity="0.7" />
+                        <div className="l-feat">
+                            <span className="l-feat-n">03</span>
+                            <svg className="l-feat-icon" width="44" height="44" viewBox="0 0 44 44" fill="none" aria-hidden>
+                                <circle cx="22" cy="22" r="13" stroke="#DDE8F2" strokeWidth="1.4" />
+                                <polygon points="19.5,16 31,22 19.5,28" fill="#8FB9D8" opacity=".75" />
                             </svg>
-                            <h3 className="qc-feature-title">Listen</h3>
-                            <p className="qc-feature-body">Variable playback speed. Sleep timer. Continue exactly where you left off. The player gets out of your way.</p>
+                            <h3 className="l-feat-title">Listen</h3>
+                            <p className="l-feat-body">Variable speed, sleep timer, seamless device handoff. The player stays out of your way so the story never does.</p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* MANIFESTO */}
+            {/* ── MANIFESTO ────────────────────────── */}
             <section style={{ background: '#05080D' }}>
-                <div className="qc-manifesto">
-                    <div className="qc-manifesto-bg" />
-                    <div className="qc-manifesto-line" />
-                    <p className="qc-manifesto-text">
+                <div className="l-manifesto">
+                    <div className="l-manifesto-glow" />
+                    <div className="l-manifesto-rule" />
+                    <blockquote className="l-manifesto-q">
                         "More than podcasts.<br />A listening space built around you."
-                    </p>
-                    <p className="qc-manifesto-sub">
-                        Quietcasts is a premium podcast experience engineered for depth, not distraction.
-                    </p>
+                    </blockquote>
+                    <p className="l-manifesto-sub">Quietcasts is a premium podcast experience engineered for depth, not distraction.</p>
+                    <div className="l-manifesto-rule2" />
                 </div>
             </section>
 
-            {/* SIGN IN */}
-            <section id="signin" style={{ background: '#09111A' }}>
-                <div className="qc-signin">
-                    <div className="qc-signin-bg" />
-                    <div className="qc-signin-card">
-                        <p className="qc-signin-logo">Quietcasts</p>
-                        <h2 className="qc-signin-heading">Welcome back.</h2>
-                        <p className="qc-signin-sub">Your listening space, uninterrupted.</p>
+            {/* ── SIGN IN ──────────────────────────── */}
+            <section style={{ background: '#09111A' }} id="signin">
+                <div className="l-signin">
+                    <div className="l-signin-glow" />
+                    <div className="l-card">
+                        <span className="l-card-logo">Quietcasts</span>
+                        <h2 className="l-card-h2">Welcome back.</h2>
+                        <p className="l-card-sub">Your listening space, uninterrupted.</p>
 
-                        {loginError && <p className="qc-error">{loginError}</p>}
+                        {loginError && <p className="l-error">{loginError}</p>}
 
-                        <button
-                            className="qc-google-btn"
-                            onClick={() => void handleGoogle()}
-                            disabled={isLoading}
-                        >
-                            <svg width="18" height="18" viewBox="0 0 24 24">
+                        <button className="l-google" onClick={() => void handleGoogle()} disabled={isLoading}>
+                            <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden>
                                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
                                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
@@ -563,20 +623,15 @@ export function Landing() {
                             {isLoading ? 'Signing in…' : 'Continue with Google'}
                         </button>
 
-                        <div className="qc-divider">
-                            <div className="qc-divider-line" />
-                            <span className="qc-divider-text">or</span>
-                            <div className="qc-divider-line" />
+                        <div className="l-divider">
+                            <div className="l-divider-line" /><span className="l-divider-text">or</span><div className="l-divider-line" />
                         </div>
 
-                        <input className="qc-input" type="email" placeholder="Email address" />
-                        <input className="qc-input" type="password" placeholder="Password" />
-                        <button className="qc-submit-btn">Sign in</button>
+                        <input className="l-input" type="email" placeholder="Email address" value={email} onChange={e => setEmail(e.target.value)} />
+                        <input className="l-input" type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} />
+                        <button className="l-submit">Sign in</button>
 
-                        <p className="qc-signin-footer">
-                            Don't have an account?{' '}
-                            <button>Create one</button>
-                        </p>
+                        <p className="l-card-foot">Don't have an account? <button>Create one</button></p>
                     </div>
                 </div>
             </section>
