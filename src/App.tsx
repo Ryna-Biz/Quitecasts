@@ -10,7 +10,7 @@ import { PodcastPage } from './pages/PodcastPage'
 import { Search } from './pages/Search'
 import { Subscriptions } from './pages/Subscriptions'
 import { OnlinePodcastPage } from './pages/OnlinePodcastPage'
-import { Login } from './pages/Login'
+import { Landing } from './pages/Landing'
 
 function currentPath() {
     return window.location.pathname || '/'
@@ -47,14 +47,14 @@ function AppContent() {
 
     if (loading) {
         return (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', backgroundColor: '#05080D' }}>
                 <p>Loading...</p>
             </div>
         )
     }
 
     if (!user) {
-        return <Login />
+        return <Landing />
     }
 
     const segments = path.split('/').filter(Boolean)
