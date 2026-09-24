@@ -19,10 +19,37 @@ export function Navigation({ path, theme, onNavigate, onToggleTheme }: { path: s
     }
 
     return <nav className="navigation" aria-label="Primary navigation">
-        <div className="brand"><span className="brand-mark">q</span><span>quietcasts</span></div>
-        <div className="nav-links">{items.map((item) => <button className={path === item.path ? 'nav-link active' : 'nav-link'} key={item.path} onClick={() => onNavigate(item.path)}><Icon name={item.icon} size={19} /><span>{item.label}</span></button>)}</div>
+        <div className="brand" onClick={() => onNavigate('/')}>
+            <div className="brand-logo-box">
+                <img src="/logo.svg" alt="Quietcasts logo" />
+            </div>
+            <span>Quiet<span className="brand-name-accent">casts</span></span>
+        </div>
+
+        <div className="nav-links">
+            {items.map((item) => (
+                <button
+                    className={path === item.path ? 'nav-link active' : 'nav-link'}
+                    key={item.path}
+                    onClick={() => onNavigate(item.path)}
+                >
+                    <Icon name={item.icon} size={19} />
+                    <span>{item.label}</span>
+                </button>
+            ))}
+        </div>
+
         <div className="nav-end">
-            <button className="theme-toggle" onClick={onToggleTheme} aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`} title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}><Icon name={theme === 'light' ? 'moon' : 'sun'} size={18} /><span>{theme === 'light' ? 'Dark mode' : 'Light mode'}</span></button>
+            <button
+                className="theme-toggle"
+                onClick={onToggleTheme}
+                aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+                title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            >
+                <Icon name={theme === 'light' ? 'moon' : 'sun'} size={18} />
+                <span>{theme === 'light' ? 'Dark mode' : 'Light mode'}</span>
+            </button>
+
             {user && (
                 <div className="user-menu-wrapper">
                     <button

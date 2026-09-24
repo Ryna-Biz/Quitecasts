@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6D35F5"/>
+      <stop offset="100%" stop-color="#3B0FA8"/>
+    </linearGradient>
+    <linearGradient id="waveGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#C4B5FD" stop-opacity="0.75"/>
+    </linearGradient>
+    <filter id="softGlow">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- App icon rounded rect background -->
+  <rect x="0" y="0" width="200" height="200" rx="44" fill="url(#bgGrad)"/>
+
+  <!-- Subtle inner highlight at top -->
+  <ellipse cx="100" cy="30" rx="72" ry="30" fill="white" opacity="0.07"/>
+
+  <!-- Headphone arc (top band) -->
+  <path
+    d="M 56 102 C 56 72 74 54 100 54 C 126 54 144 72 144 102"
+    fill="none"
+    stroke="white"
+    stroke-width="13"
+    stroke-linecap="round"
+    opacity="0.95"
+  />
+
+  <!-- Left ear cup -->
+  <rect x="44" y="100" width="22" height="36" rx="11" fill="white" opacity="0.92"/>
+
+  <!-- Right ear cup -->
+  <rect x="134" y="100" width="22" height="36" rx="11" fill="white" opacity="0.92"/>
+
+  <!-- Waveform bars (centered below headphone) -->
+  <rect x="78" y="152" width="7" height="14" rx="3.5" fill="url(#waveGrad)" opacity="0.7"/>
+  <rect x="90" y="144" width="7" height="22" rx="3.5" fill="url(#waveGrad)" opacity="0.85"/>
+  <rect x="102" y="138" width="7" height="28" rx="3.5" fill="white"/>
+  <rect x="114" y="144" width="7" height="22" rx="3.5" fill="url(#waveGrad)" opacity="0.85"/>
+
+  <!-- Amber accent dot -->
+  <circle cx="152" cy="52" r="9" fill="#FFB800" opacity="0.9"/>
+</svg>

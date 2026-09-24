@@ -45,6 +45,8 @@ function AppContent() {
         window.scrollTo({ top: 0, behavior: 'smooth' })
     }
 
+    const [guestMode, setGuestMode] = useState(false)
+
     if (loading) {
         return (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', backgroundColor: '#05080D' }}>
@@ -53,8 +55,8 @@ function AppContent() {
         )
     }
 
-    if (!user) {
-        return <Landing />
+    if (!user && !guestMode) {
+        return <Landing onExploreGuest={() => setGuestMode(true)} />
     }
 
     const segments = path.split('/').filter(Boolean)
