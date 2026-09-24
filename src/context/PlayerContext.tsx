@@ -3,6 +3,8 @@ import { getEpisode, getPodcast } from '../data/catalog'
 import { audioService } from '../services/audio'
 import { downloadService } from '../services/downloads'
 import { storage } from '../services/storage'
+import { firestoreService } from '../services/firestore'
+import { useAuth } from './AuthContext'
 import type { Episode, PlayerSnapshot } from '../types/podcast'
 
 interface DownloadProgress {
@@ -41,6 +43,7 @@ interface PlayerContextValue {
 const PlayerContext = createContext<PlayerContextValue | undefined>(undefined)
 
 export function PlayerProvider({ children }: { children: ReactNode }) {
+    const { user } = useAuth()
     const initial = storage.getPlayer()
     const [episode, setEpisode] = useState<Episode | null>(() => getEpisode(initial.episodeId ?? undefined) ?? null)
     const [snapshot, setSnapshot] = useState(() => ({ ...audioService.getSnapshot(), playing: false, playbackRate: initial.playbackRate }))
@@ -61,6 +64,24 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         downloadService.getAllDownloaded().then(setDownloads).catch(() => setDownloads([]))
     }, [])
+
+    useEffect(() => {
+        if (!user) return
+        const syncInterval = window.setInterval(async () => {
+            try {
+                await Promise.all([
+                    firestoreService.syncProgress(user.uid, progress),
+                    firestoreService.syncHistory(user.uid, history),
+                    firestoreService.syncQueue(user.uid, queue),
+                    firestoreService.syncDownloads(user.uid, downloads),
+                    firestoreService.syncPlaybackRate(user.uid, snapshot.playbackRate),
+                ])
+            } catch (error) {
+                console.error('Failed to sync user data:', error)
+            }
+        }, 30000)
+        return () => window.clearInterval(syncInterval)
+    }, [user, progress, history, queue, downloads, snapshot.playbackRate])
 
     useEffect(() => {
         if (!episode) return

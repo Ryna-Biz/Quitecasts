@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { AuthProvider, useAuth } from './context/AuthContext'
 import { PlayerProvider } from './context/PlayerContext'
 import { Layout } from './components/Layout'
 import { Activity } from './pages/Activity'
@@ -9,6 +10,7 @@ import { PodcastPage } from './pages/PodcastPage'
 import { Search } from './pages/Search'
 import { Subscriptions } from './pages/Subscriptions'
 import { OnlinePodcastPage } from './pages/OnlinePodcastPage'
+import { Login } from './pages/Login'
 
 function currentPath() {
     return window.location.pathname || '/'
@@ -20,7 +22,8 @@ function initialTheme(): 'light' | 'dark' {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
-export default function App() {
+function AppContent() {
+    const { user, loading } = useAuth()
     const [path, setPath] = useState(currentPath)
     const [theme, setTheme] = useState<'light' | 'dark'>(initialTheme)
 
@@ -42,6 +45,18 @@ export default function App() {
         window.scrollTo({ top: 0, behavior: 'smooth' })
     }
 
+    if (loading) {
+        return (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
+                <p>Loading...</p>
+            </div>
+        )
+    }
+
+    if (!user) {
+        return <Login />
+    }
+
     const segments = path.split('/').filter(Boolean)
     let page = <NotFound onNavigate={navigate} />
     if (path === '/') page = <Home onNavigate={navigate} />
@@ -53,4 +68,8 @@ export default function App() {
     else if (segments[0] === 'podcast' && segments[1]) page = <PodcastPage id={segments[1]} onNavigate={navigate} />
 
     return <PlayerProvider><Layout path={path} theme={theme} onToggleTheme={() => setTheme((current) => current === 'light' ? 'dark' : 'light')} onNavigate={navigate}>{page}</Layout></PlayerProvider>
+}
+
+export default function App() {
+    return <AuthProvider><AppContent /></AuthProvider>
 }
