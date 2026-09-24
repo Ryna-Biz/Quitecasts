@@ -63,7 +63,9 @@ export const downloadService = {
         episode: Episode,
         onProgress?: (progress: number) => void
     ): Promise<string> {
-        const response = await fetch(episode.audioUrl)
+        const response = await fetch(episode.audioUrl, {
+            mode: 'cors',
+        })
         if (!response.ok) {
             throw new Error(`Failed to download: ${response.status}`)
         }
