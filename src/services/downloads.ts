@@ -50,7 +50,14 @@ export const downloadService = {
                 const request = store.get(episodeId)
                 request.onsuccess = () => {
                     const result = request.result as DownloadedEpisode | undefined
-                    resolve(result ? result.audioUrl : null)
+                    if (!result) {
+                        resolve(null)
+                        return
+                    }
+                    // Blob URLs are temporary and cleared on page reload.
+                    // We must recreate the URL from the stored Blob.
+                    const audioUrl = URL.createObjectURL(result.audioBlob)
+                    resolve(audioUrl)
                 }
                 request.onerror = () => resolve(null)
             })
