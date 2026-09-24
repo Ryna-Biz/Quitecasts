@@ -1,8 +1,16 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { getEpisode, getPodcast } from '../data/catalog'
 import { audioService } from '../services/audio'
+import { downloadService } from '../services/downloads'
 import { storage } from '../services/storage'
 import type { Episode, PlayerSnapshot } from '../types/podcast'
+
+interface DownloadProgress {
+    episodeId: string
+    progress: number
+    status: 'downloading' | 'completed' | 'failed'
+    error?: string
+}
 
 interface PlayerContextValue {
     episode: Episode | null
@@ -15,6 +23,7 @@ interface PlayerContextValue {
     history: string[]
     queue: string[]
     downloads: string[]
+    downloadProgress: DownloadProgress | null
     playEpisode: (episode: Episode, position?: number) => void
     togglePlayback: () => void
     seek: (position: number) => void
@@ -24,6 +33,9 @@ interface PlayerContextValue {
     addToQueue: (episodeId: string) => void
     removeFromQueue: (episodeId: string) => void
     markDownloaded: (episodeId: string) => void
+    startDownload: (episode: Episode) => Promise<void>
+    cancelDownload: (episodeId: string) => void
+    isDownloaded: (episodeId: string) => Promise<boolean>
 }
 
 const PlayerContext = createContext<PlayerContextValue | undefined>(undefined)
@@ -35,13 +47,19 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     const [progress, setProgress] = useState(storage.getProgress)
     const [history, setHistory] = useState(storage.getHistory)
     const [queue, setQueue] = useState(storage.getQueue)
-    const [downloads, setDownloads] = useState(storage.getDownloads)
+    const [downloads, setDownloads] = useState<string[]>([])
+    const [downloadProgress, setDownloadProgress] = useState<DownloadProgress | null>(null)
+    const [abortControllers, setAbortControllers] = useState<Map<string, AbortController>>(new Map())
 
     useEffect(() => {
         const unsubscribe = audioService.subscribe(() => setSnapshot(audioService.getSnapshot()))
         return () => {
             unsubscribe()
         }
+    }, [])
+
+    useEffect(() => {
+        downloadService.getAllDownloaded().then(setDownloads).catch(() => setDownloads([]))
     }, [])
 
     useEffect(() => {
@@ -96,9 +114,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         navigator.mediaSession.setActionHandler('seekforward', () => skip(30))
     }, [episode])
 
-    const playEpisode = (nextEpisode: Episode, position = progress[nextEpisode.id]?.position ?? 0) => {
-        setEpisode(nextEpisode)
-        audioService.load(nextEpisode, position)
+    const playEpisode = async (nextEpisode: Episode, position = progress[nextEpisode.id]?.position ?? 0) => {
+        const downloadedUrl = await downloadService.getDownloadedUrl(nextEpisode.id)
+        const episodeToPlay = downloadedUrl ? { ...nextEpisode, audioUrl: downloadedUrl } : nextEpisode
+        setEpisode(episodeToPlay)
+        audioService.load(episodeToPlay, position)
         audioService.setPlaybackRate(snapshot.playbackRate)
         void audioService.play().catch(() => undefined)
         const nextHistory = [nextEpisode.id, ...history.filter((id) => id !== nextEpisode.id)].slice(0, 20)
@@ -130,13 +150,82 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         setQueue(nextQueue)
         storage.setQueue(nextQueue)
     }
-    const markDownloaded = (episodeId: string) => {
-        const nextDownloads = downloads.includes(episodeId) ? downloads.filter((id) => id !== episodeId) : [...downloads, episodeId]
+    const markDownloaded = async (episodeId: string) => {
+        const isCurrentlyDownloaded = downloads.includes(episodeId)
+        if (isCurrentlyDownloaded) {
+            await downloadService.deleteDownload(episodeId)
+        }
+        const nextDownloads = isCurrentlyDownloaded ? downloads.filter((id) => id !== episodeId) : [...downloads, episodeId]
         setDownloads(nextDownloads)
         storage.setDownloads(nextDownloads)
     }
 
-    const value = useMemo<PlayerContextValue>(() => ({ episode, ...snapshot, progress, history, queue, downloads, playEpisode, togglePlayback, seek, skip, setPlaybackRate, setVolume, addToQueue, removeFromQueue, markDownloaded }), [episode, snapshot, progress, history, queue, downloads])
+    const startDownload = async (episode: Episode) => {
+        const controller = new AbortController()
+        setAbortControllers(prev => new Map(prev).set(episode.id, controller))
+
+        setDownloadProgress({ episodeId: episode.id, progress: 0, status: 'downloading' })
+
+        try {
+            await downloadService.downloadEpisode(episode, (p) => {
+                setDownloadProgress({ episodeId: episode.id, progress: p, status: 'downloading' })
+            })
+            setDownloadProgress({ episodeId: episode.id, progress: 1, status: 'completed' })
+            const nextDownloads = [...downloads, episode.id]
+            setDownloads(nextDownloads)
+            storage.setDownloads(nextDownloads)
+            setTimeout(() => setDownloadProgress(null), 1500)
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Download failed'
+            setDownloadProgress({ episodeId: episode.id, progress: 0, status: 'failed', error: errorMessage })
+            setTimeout(() => setDownloadProgress(null), 3000)
+        } finally {
+            setAbortControllers(prev => {
+                const next = new Map(prev)
+                next.delete(episode.id)
+                return next
+            })
+        }
+    }
+
+    const cancelDownload = (episodeId: string) => {
+        const controller = abortControllers.get(episodeId)
+        if (controller) {
+            controller.abort()
+            setAbortControllers(prev => {
+                const next = new Map(prev)
+                next.delete(episodeId)
+                return next
+            })
+        }
+        setDownloadProgress(null)
+    }
+
+    const isDownloaded = async (episodeId: string) => {
+        return downloadService.isDownloaded(episodeId)
+    }
+
+    const value = useMemo<PlayerContextValue>(() => ({
+        episode,
+        ...snapshot,
+        progress,
+        history,
+        queue,
+        downloads,
+        downloadProgress,
+        playEpisode,
+        togglePlayback,
+        seek,
+        skip,
+        setPlaybackRate,
+        setVolume,
+        addToQueue,
+        removeFromQueue,
+        markDownloaded,
+        startDownload,
+        cancelDownload,
+        isDownloaded,
+    }), [episode, snapshot, progress, history, queue, downloads, downloadProgress])
     return <PlayerContext.Provider value={value}>{children}</PlayerContext.Provider>
 }
 
