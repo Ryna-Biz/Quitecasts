@@ -80,7 +80,6 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         const syncInterval = window.setInterval(async () => {
             try {
                 await Promise.all([
-                    firestoreService.syncSubscriptions(user.uid, subscriptions),
                     firestoreService.syncProgress(user.uid, progress),
                     firestoreService.syncHistory(user.uid, history),
                     firestoreService.syncQueue(user.uid, queue),

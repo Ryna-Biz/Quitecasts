@@ -21,12 +21,7 @@ export const firestoreService = {
             ...data,
             lastSyncedAt: serverTimestamp(),
         }
-        const docSnap = await getDoc(userRef)
-        if (docSnap.exists()) {
-            await updateDoc(userRef, updateData)
-        } else {
-            await setDoc(userRef, updateData)
-        }
+        await setDoc(userRef, updateData, { merge: true })
     },
 
     async getUserData(userId: string): Promise<UserData | null> {

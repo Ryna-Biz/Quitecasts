@@ -12,7 +12,7 @@ function formatDuration(seconds: number) {
 }
 
 export function EpisodeRow({ episode, compact = false }: { episode: Episode; compact?: boolean }) {
-    const { episode: current, playing, progress, playEpisode, addToQueue, downloads, downloadProgress, startDownload, cancelDownload } = usePlayer()
+    const { episode: current, playing, progress, playEpisode, addToQueue, downloads, downloadProgress, startDownload, cancelDownload, markDownloaded } = usePlayer()
     const [localDownloaded, setLocalDownloaded] = useState(false)
     const podcast = getPodcast(episode.podcastId)
     const isCurrent = current?.id === episode.id
@@ -45,7 +45,7 @@ export function EpisodeRow({ episode, compact = false }: { episode: Episode; com
                         if (isDownloading) {
                             cancelDownload(episode.id)
                         } else if (isDownloaded) {
-                            void startDownload(episode)
+                            void markDownloaded(episode.id)
                         } else {
                             void startDownload(episode)
                         }
