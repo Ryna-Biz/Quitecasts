@@ -422,7 +422,7 @@ export function Landing() {
 
                 {/* ── NAV ── */}
                 <nav className="nav">
-                    <span className="nav-logo">Quietcasts</span>
+                    <img src="/logo.png" alt="Quietcasts" style={{ height: '36px', width: 'auto', objectFit: 'contain' }} />
                     <div className="nav-right">
                         <div className="nav-pill">
                             <div className="nav-dot" />
@@ -544,6 +544,7 @@ export function Landing() {
 
                     {/* Sign-in card */}
                     <div className="card">
+                        <img src="/logo.png" alt="Quietcasts" style={{ height: '44px', width: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto 24px' }} />
                         <h2 className="card-heading">Welcome to Quietcasts.</h2>
                         <p className="card-sub">Your listening space, uninterrupted.</p>
 
