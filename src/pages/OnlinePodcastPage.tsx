@@ -21,7 +21,7 @@ export function OnlinePodcastPage({ onNavigate }: { onNavigate: (path: string) =
     const [error, setError] = useState('')
     const [saving, setSaving] = useState(false)
     const [expandedEpisodes, setExpandedEpisodes] = useState<Set<string>>(() => new Set())
-    const { episode: currentEpisode, playing, playEpisode } = usePlayer()
+    const { episode: currentEpisode, playing, playEpisode, toggleSubscription } = usePlayer()
 
     useEffect(() => {
         if (!result) return
@@ -47,8 +47,7 @@ export function OnlinePodcastPage({ onNavigate }: { onNavigate: (path: string) =
         if (!podcast) return
         setSaving(true)
         saveImportedCatalog(podcast, episodes)
-        const subscriptions = storage.getSubscriptions()
-        if (!subscriptions.includes(podcast.id)) storage.setSubscriptions([...subscriptions, podcast.id])
+        void toggleSubscription(podcast.id)
         sessionStorage.removeItem('quietcasts:online-preview')
         onNavigate(`/podcast/${podcast.id}`)
     }

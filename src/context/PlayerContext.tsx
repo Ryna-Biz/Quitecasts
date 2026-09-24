@@ -25,6 +25,7 @@ interface PlayerContextValue {
     history: string[]
     queue: string[]
     downloads: string[]
+    subscriptions: string[]
     downloadProgress: DownloadProgress | null
     playEpisode: (episode: Episode, position?: number) => void
     togglePlayback: () => void
@@ -38,6 +39,7 @@ interface PlayerContextValue {
     startDownload: (episode: Episode) => Promise<void>
     cancelDownload: (episodeId: string) => void
     isDownloaded: (episodeId: string) => Promise<boolean>
+    toggleSubscription: (podcastId: string) => Promise<void>
 }
 
 const PlayerContext = createContext<PlayerContextValue | undefined>(undefined)
@@ -50,6 +52,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     const [progress, setProgress] = useState(storage.getProgress)
     const [history, setHistory] = useState(storage.getHistory)
     const [queue, setQueue] = useState(storage.getQueue)
+    const [subscriptions, setSubscriptions] = useState(storage.getSubscriptions)
     const [downloads, setDownloads] = useState<string[]>([])
     const [downloadProgress, setDownloadProgress] = useState<DownloadProgress | null>(null)
     const [abortControllers, setAbortControllers] = useState<Map<string, AbortController>>(new Map())
@@ -65,11 +68,19 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         downloadService.getAllDownloaded().then(setDownloads).catch(() => setDownloads([]))
     }, [])
 
+    // Reload subscriptions from storage whenever the event fires (e.g. after Firestore restore)
+    useEffect(() => {
+        const refresh = () => setSubscriptions(storage.getSubscriptions())
+        window.addEventListener('quietcasts:subscriptions-changed', refresh)
+        return () => window.removeEventListener('quietcasts:subscriptions-changed', refresh)
+    }, [])
+
     useEffect(() => {
         if (!user) return
         const syncInterval = window.setInterval(async () => {
             try {
                 await Promise.all([
+                    firestoreService.syncSubscriptions(user.uid, subscriptions),
                     firestoreService.syncProgress(user.uid, progress),
                     firestoreService.syncHistory(user.uid, history),
                     firestoreService.syncQueue(user.uid, queue),
@@ -81,7 +92,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
             }
         }, 30000)
         return () => window.clearInterval(syncInterval)
-    }, [user, progress, history, queue, downloads, snapshot.playbackRate])
+    }, [user, subscriptions, progress, history, queue, downloads, snapshot.playbackRate])
 
     useEffect(() => {
         if (!episode) return
@@ -226,12 +237,28 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         return downloadService.isDownloaded(episodeId)
     }
 
+    const toggleSubscription = async (podcastId: string) => {
+        const next = subscriptions.includes(podcastId)
+            ? subscriptions.filter((id) => id !== podcastId)
+            : [...subscriptions, podcastId]
+        setSubscriptions(next)
+        storage.setSubscriptions(next)
+        if (user) {
+            try {
+                await firestoreService.syncSubscriptions(user.uid, next)
+            } catch {
+                // silent — localStorage already updated
+            }
+        }
+    }
+
     const value = useMemo<PlayerContextValue>(() => ({
         episode,
         ...snapshot,
         progress,
         history,
         queue,
+        subscriptions,
         downloads,
         downloadProgress,
         playEpisode,
@@ -246,6 +273,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         startDownload,
         cancelDownload,
         isDownloaded,
+        toggleSubscription,
     }), [episode, snapshot, progress, history, queue, downloads, downloadProgress])
     return <PlayerContext.Provider value={value}>{children}</PlayerContext.Provider>
 }

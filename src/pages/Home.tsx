@@ -6,29 +6,28 @@ import type { Podcast } from '../types/podcast'
 import { EpisodeRow } from '../components/EpisodeRow'
 import { PodcastRow } from '../components/PodcastRow'
 import { useAuth } from '../context/AuthContext'
+import { usePlayer } from '../context/PlayerContext'
 
 export function Home({ onNavigate }: { onNavigate: (path: string) => void }) {
     const { user } = useAuth()
+    const { subscriptions } = usePlayer()
     const episodes = getAllEpisodes()
     const [topPodcasts, setTopPodcasts] = useState<Podcast[]>([])
     const [topLoading, setTopLoading] = useState(true)
     const [topError, setTopError] = useState(false)
     const [openingPodcastId, setOpeningPodcastId] = useState<string | null>(null)
-    const [subscriptionIds, setSubscriptionIds] = useState(storage.getSubscriptions)
     const subscribedEpisodes = episodes
-        .filter((episode) => subscriptionIds.includes(episode.podcastId))
+        .filter((episode) => subscriptions.includes(episode.podcastId))
         .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
 
     const firstName = user?.displayName?.split(' ')[0] || null
 
     useEffect(() => {
-        const refresh = () => setSubscriptionIds(storage.getSubscriptions())
-        window.addEventListener('storage', refresh)
-        window.addEventListener('quietcasts:subscriptions-changed', refresh)
-        return () => {
-            window.removeEventListener('storage', refresh)
-            window.removeEventListener('quietcasts:subscriptions-changed', refresh)
+        const refresh = () => {
+            // PlayerContext already handles this via its own event listener
         }
+        window.addEventListener('quietcasts:subscriptions-changed', refresh)
+        return () => window.removeEventListener('quietcasts:subscriptions-changed', refresh)
     }, [])
 
     const openTopPodcast = async (podcast: Podcast) => {

@@ -105,11 +105,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const applyUserData = (data: UserData) => {
-        storage.setSubscriptions(data.subscriptions)
-        storage.setProgress(data.progress)
-        storage.setHistory(data.history)
-        storage.setQueue(data.queue)
-        storage.setDownloads(data.downloads)
+        storage.setSubscriptions(data.subscriptions ?? [])
+        storage.setProgress(data.progress ?? {})
+        storage.setHistory(data.history ?? [])
+        storage.setQueue(data.queue ?? [])
+        storage.setDownloads(data.downloads ?? [])
+        // setSubscriptions already dispatches 'quietcasts:subscriptions-changed'
+        // so PlayerContext picks up the restored subscriptions automatically
     }
 
     const value: AuthContextValue = {
