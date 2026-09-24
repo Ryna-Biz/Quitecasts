@@ -145,18 +145,25 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         navigator.mediaSession.setActionHandler('seekforward', () => skip(30))
     }, [episode])
 
-    const playEpisode = async (nextEpisode: Episode, position = progress[nextEpisode.id]?.position ?? 0) => {
-        const downloadedUrl = await downloadService.getDownloadedUrl(nextEpisode.id)
-        const episodeToPlay = downloadedUrl ? { ...nextEpisode, audioUrl: downloadedUrl } : nextEpisode
-        setEpisode(episodeToPlay)
-        audioService.load(episodeToPlay, position)
-        audioService.setPlaybackRate(snapshot.playbackRate)
-        void audioService.play().catch(() => undefined)
-        const nextHistory = [nextEpisode.id, ...history.filter((id) => id !== nextEpisode.id)].slice(0, 20)
-        setHistory(nextHistory)
-        storage.setHistory(nextHistory)
-        storage.setPlayer({ episodeId: nextEpisode.id, position, playbackRate: snapshot.playbackRate })
-    }
+        const playEpisode = async (nextEpisode: Episode, position = progress[nextEpisode.id]?.position ?? 0) => {
+            const downloadedUrl = await downloadService.getDownloadedUrl(nextEpisode.id)
+            const episodeToPlay = downloadedUrl ? { ...nextEpisode, audioUrl: downloadedUrl } : nextEpisode
+            setEpisode(episodeToPlay)
+            audioService.load(episodeToPlay, position)
+            audioService.setPlaybackRate(snapshot.playbackRate)
+            void audioService.play().catch(() => undefined)
+            const nextHistory = [nextEpisode.id, ...history.filter((id) => id !== nextEpisode.id)].slice(0, 20)
+            setHistory(nextHistory)
+            storage.setHistory(nextHistory)
+            storage.setPlayer({ episodeId: nextEpisode.id, position, playbackRate: snapshot.playbackRate })
+            if (user) {
+                try {
+                    await firestoreService.syncHistory(user.uid, nextHistory)
+                } catch {
+                    // silent
+                }
+            }
+        }
 
     const togglePlayback = () => {
         if (!episode) return
@@ -189,6 +196,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         const nextDownloads = isCurrentlyDownloaded ? downloads.filter((id) => id !== episodeId) : [...downloads, episodeId]
         setDownloads(nextDownloads)
         storage.setDownloads(nextDownloads)
+        if (user) {
+            try {
+                await firestoreService.syncDownloads(user.uid, nextDownloads)
+            } catch {
+                // silent
+            }
+        }
     }
 
     const startDownload = async (episode: Episode) => {
@@ -205,6 +219,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
             const nextDownloads = [...downloads, episode.id]
             setDownloads(nextDownloads)
             storage.setDownloads(nextDownloads)
+            if (user) {
+                try {
+                    await firestoreService.syncDownloads(user.uid, nextDownloads)
+                } catch {
+                    // silent
+                }
+            }
             setTimeout(() => setDownloadProgress(null), 1500)
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Download failed'
