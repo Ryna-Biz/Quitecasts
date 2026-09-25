@@ -3,7 +3,6 @@ import type { Episode } from '../types/podcast'
 interface DownloadedEpisode {
     id: string
     audioBlob: Blob
-    audioUrl: string
     downloadedAt: number
 }
 
@@ -25,6 +24,10 @@ function openDB(): Promise<IDBDatabase> {
     })
 }
 
+// Cache for blob URLs created by getDownloadedUrl to avoid creating multiple URLs for the same blob
+// and to allow revoking them when the episode is deleted or re-downloaded.
+const blobUrlCache = new Map<string, string>();
+
 export const downloadService = {
     async isDownloaded(episodeId: string): Promise<boolean> {
         try {
@@ -41,30 +44,35 @@ export const downloadService = {
         }
     },
 
-    async getDownloadedUrl(episodeId: string): Promise<string | null> {
-        try {
-            const db = await openDB()
-            return new Promise((resolve) => {
-                const tx = db.transaction(STORE_NAME, 'readonly')
-                const store = tx.objectStore(STORE_NAME)
-                const request = store.get(episodeId)
-                request.onsuccess = () => {
-                    const result = request.result as DownloadedEpisode | undefined
-                    if (!result) {
-                        resolve(null)
-                        return
-                    }
-                    // Blob URLs are temporary and cleared on page reload.
-                    // We must recreate the URL from the stored Blob.
-                    const audioUrl = URL.createObjectURL(result.audioBlob)
-                    resolve(audioUrl)
-                }
-                request.onerror = () => resolve(null)
-            })
-        } catch {
-            return null
-        }
-    },
+     async getDownloadedUrl(episodeId: string): Promise<string | null> {
+         // Check cache first
+         if (blobUrlCache.has(episodeId)) {
+             return blobUrlCache.get(episodeId)!
+         }
+         try {
+             const db = await openDB()
+             return new Promise((resolve) => {
+                 const tx = db.transaction(STORE_NAME, 'readonly')
+                 const store = tx.objectStore(STORE_NAME)
+                 const request = store.get(episodeId)
+                 request.onsuccess = () => {
+                     const result = request.result as DownloadedEpisode | undefined
+                     if (!result) {
+                         resolve(null)
+                         return
+                     }
+                     // Blob URLs are temporary and cleared on page reload.
+                     // We must recreate the URL from the stored Blob.
+                     const audioUrl = URL.createObjectURL(result.audioBlob)
+                     blobUrlCache.set(episodeId, audioUrl)
+                     resolve(audioUrl)
+                 }
+                 request.onerror = () => resolve(null)
+             })
+         } catch {
+             return null
+         }
+     },
 
     async downloadEpisode(
         episode: Episode,
@@ -105,7 +113,7 @@ export const downloadService = {
         }
 
         const audioBlob = new Blob(chunks, { type: 'audio/mpeg' })
-        
+         
         // Trigger actual browser download
         const downloadUrl = URL.createObjectURL(audioBlob)
         const link = document.createElement('a')
@@ -115,9 +123,15 @@ export const downloadService = {
         link.click()
         document.body.removeChild(link)
         URL.revokeObjectURL(downloadUrl)
-
+  
+        // If we have a cached blob URL for this episode, revoke it before creating a new one
+        if (blobUrlCache.has(episode.id)) {
+            URL.revokeObjectURL(blobUrlCache.get(episode.id)!)
+            blobUrlCache.delete(episode.id)
+        }
         const audioUrl = URL.createObjectURL(audioBlob)
-
+        blobUrlCache.set(episode.id, audioUrl)
+  
         const db = await openDB()
         await new Promise<void>((resolve, reject) => {
             const tx = db.transaction(STORE_NAME, 'readwrite')
@@ -125,34 +139,35 @@ export const downloadService = {
             const request = store.put({
                 id: episode.id,
                 audioBlob,
-                audioUrl,
                 downloadedAt: Date.now(),
             } as DownloadedEpisode)
             request.onsuccess = () => resolve()
             request.onerror = () => reject(request.error)
         })
-
+  
         return audioUrl
     },
 
-    async deleteDownload(episodeId: string): Promise<void> {
-        try {
-            const db = await openDB()
-            const tx = db.transaction(STORE_NAME, 'readwrite')
-            const store = tx.objectStore(STORE_NAME)
-            const getRequest = store.get(episodeId)
+     async deleteDownload(episodeId: string): Promise<void> {
+         try {
+             const db = await openDB()
+             const tx = db.transaction(STORE_NAME, 'readwrite')
+             const store = tx.objectStore(STORE_NAME)
+             const getRequest = store.get(episodeId)
 
-            getRequest.onsuccess = () => {
-                const result = getRequest.result as DownloadedEpisode | undefined
-                if (result?.audioUrl) {
-                    URL.revokeObjectURL(result.audioUrl)
-                }
-                store.delete(episodeId)
-            }
-        } catch {
-            // Ignore deletion errors
-        }
-    },
+             getRequest.onsuccess = () => {
+                 const result = getRequest.result as DownloadedEpisode | undefined
+                 // Revoke cached blob URL if exists
+                 if (blobUrlCache.has(episodeId)) {
+                     URL.revokeObjectURL(blobUrlCache.get(episodeId)!)
+                     blobUrlCache.delete(episodeId)
+                 }
+                 store.delete(episodeId)
+             }
+         } catch {
+             // Ignore deletion errors
+         }
+     },
 
     async getAllDownloaded(): Promise<string[]> {
         try {
