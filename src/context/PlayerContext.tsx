@@ -40,6 +40,7 @@ interface PlayerContextValue {
     cancelDownload: (episodeId: string) => void
     isDownloaded: (episodeId: string) => Promise<boolean>
     toggleSubscription: (podcastId: string) => Promise<void>
+    clearHistory: () => Promise<void>
 }
 
 const PlayerContext = createContext<PlayerContextValue | undefined>(undefined)
@@ -253,8 +254,16 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         setDownloadProgress(null)
     }
 
-    const isDownloaded = async (episodeId: string) => {
-        return downloadService.isDownloaded(episodeId)
+    const clearHistory = async () => {
+        setHistory([])
+        storage.setHistory([])
+        if (user) {
+            try {
+                await firestoreService.syncHistory(user.uid, [])
+            } catch {
+                // silent
+            }
+        }
     }
 
     const toggleSubscription = async (podcastId: string) => {
@@ -291,9 +300,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         removeFromQueue,
         markDownloaded,
         startDownload,
+        isDownloaded: downloadService.isDownloaded,
         cancelDownload,
-        isDownloaded,
         toggleSubscription,
+        clearHistory,
     }), [episode, snapshot, progress, history, queue, downloads, downloadProgress])
     return <PlayerContext.Provider value={value}>{children}</PlayerContext.Provider>
 }

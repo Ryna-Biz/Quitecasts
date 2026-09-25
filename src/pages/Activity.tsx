@@ -19,7 +19,7 @@ function EmptySlot({ icon, message }: { icon: string; message: string }) {
 }
 
 export function Activity() {
-    const { history, downloads, queue, removeFromQueue } = usePlayer()
+    const { history, downloads, queue, removeFromQueue, clearHistory } = usePlayer()
     const episodes = getAllEpisodes()
     const historyEpisodes = history
         .map((id) => episodes.find((ep) => ep.id === id))
@@ -31,12 +31,32 @@ export function Activity() {
         .map((id) => episodes.find((ep) => ep.id === id))
         .filter((ep): ep is typeof episodes[number] => Boolean(ep))
 
+    const handleClearHistory = async () => {
+        if (window.confirm('Are you sure you want to clear your listening history?')) {
+            await clearHistory()
+        }
+    }
+
     return (
         <div className="page">
             <div className="page-heading">
-                <p className="eyebrow">Your Listening</p>
-                <h1>Activity</h1>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                        <p className="eyebrow">Your Listening</p>
+                        <h1>Activity</h1>
+                    </div>
+                    {historyEpisodes.length > 0 && (
+                        <button 
+                            className="text-button" 
+                            onClick={handleClearHistory}
+                            style={{ fontSize: '13px', color: 'var(--muted)', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
+                        >
+                            Clear History
+                        </button>
+                    )}
+                </div>
             </div>
+
 
             {/* History */}
             <section className="content-section">

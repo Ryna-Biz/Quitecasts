@@ -105,6 +105,17 @@ export const downloadService = {
         }
 
         const audioBlob = new Blob(chunks, { type: 'audio/mpeg' })
+        
+        // Trigger actual browser download
+        const downloadUrl = URL.createObjectURL(audioBlob)
+        const link = document.createElement('a')
+        link.href = downloadUrl
+        link.download = `${episode.title.replace(/[^a-z0-9]/gi, '_')}.mp3`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(downloadUrl)
+
         const audioUrl = URL.createObjectURL(audioBlob)
 
         const db = await openDB()
