@@ -708,7 +708,36 @@ select:focus-visible {
     border-color: var(--accent);
 }
 
-/* ── SEARCH ── */
+/* ── SEARCH CATEGORIES ── */
+.search-categories {
+    margin-top: 32px;
+    text-align: center;
+}
+.category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    margin-top: 20px;
+}
+.category-card {
+    padding: 16px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text);
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
+}
+.category-card:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    background: var(--accent-soft);
+}
+
 .search-field {
     display: flex;
     gap: 12px;
