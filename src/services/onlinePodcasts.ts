@@ -42,9 +42,10 @@ interface TopPodcastsResponse {
 
 export async function fetchTopPodcasts(limit = 4): Promise<Podcast[]> {
     try {
-        const response = await fetch(`https://corsproxy.io/?${encodeURIComponent(`https://rss.applemarketingtools.com/api/v2/us/podcasts/top/${limit}/podcasts.json`)}`)
+        const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://rss.applemarketingtools.com/api/v2/us/podcasts/top/${limit}/podcasts.json`)}`)
         if (response?.ok) {
-            const data = await response.json() as TopPodcastsResponse
+            const wrapper = await response.json()
+            const data = JSON.parse(wrapper.contents) as TopPodcastsResponse
             const chartResults = (data.feed?.results ?? []).filter((result): result is TopPodcastResult & { id: string; name: string; artworkUrl100: string } => Boolean(result.id && result.name && result.artworkUrl100)).map((result) => ({
                 id: `top-${result.id}`,
                 title: result.name,
