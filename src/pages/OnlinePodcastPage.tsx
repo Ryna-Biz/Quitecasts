@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { saveImportedCatalog } from '../data/catalog'
-import { storage } from '../services/storage'
 import { importPodcast, type OnlinePodcastResult } from '../services/onlinePodcasts'
 import type { Episode, Podcast } from '../types/podcast'
 import { Artwork } from '../components/Artwork'
 import { Icon } from '../components/Icon'
+import { SubscribeButton } from '../components/SubscribeButton'
 import { PlayButton } from '../components/PlayButton'
 import { usePlayer } from '../context/PlayerContext'
 
@@ -19,9 +19,8 @@ export function OnlinePodcastPage({ onNavigate }: { onNavigate: (path: string) =
     const [episodes, setEpisodes] = useState<Episode[]>([])
     const [loading, setLoading] = useState(Boolean(result))
     const [error, setError] = useState('')
-    const [saving, setSaving] = useState(false)
     const [expandedEpisodes, setExpandedEpisodes] = useState<Set<string>>(() => new Set())
-    const { episode: currentEpisode, playing, playEpisode, toggleSubscription } = usePlayer()
+    const { episode: currentEpisode, playing, playEpisode } = usePlayer()
 
     useEffect(() => {
         if (!result) return
@@ -43,15 +42,6 @@ export function OnlinePodcastPage({ onNavigate }: { onNavigate: (path: string) =
         }
     }, [result])
 
-    const subscribe = () => {
-        if (!podcast) return
-        setSaving(true)
-        saveImportedCatalog(podcast, episodes)
-        void toggleSubscription(podcast.id)
-        sessionStorage.removeItem('quietcasts:online-preview')
-        onNavigate(`/podcast/${podcast.id}`)
-    }
-
     const playPreviewEpisode = (episode: Episode) => {
         if (!podcast) return
         saveImportedCatalog(podcast, episodes)
@@ -62,7 +52,7 @@ export function OnlinePodcastPage({ onNavigate }: { onNavigate: (path: string) =
     if (loading) return <div className="page empty-state"><p className="eyebrow">Podcast preview</p><h1>Loading podcast...</h1><p className="quiet-message">Fetching the latest episodes from its RSS feed.</p></div>
     if (!podcast) return <div className="page empty-state"><button className="back-link" onClick={() => onNavigate('/search')}><Icon name="back" size={17} /> Back to search</button><h1>Preview unavailable.</h1><p>{error || 'This podcast could not be loaded.'}</p></div>
 
-    return <div className="page podcast-page preview-page"><button className="back-link" onClick={() => onNavigate('/search')}><Icon name="back" size={17} /> Back to search</button><header className="podcast-header"><Artwork src={podcast.artwork} alt={`${podcast.title} artwork`} size="large" /><div className="podcast-header-copy"><p className="eyebrow">Podcast preview · {podcast.category}</p><h1>{podcast.title}</h1><p className="podcast-author">{podcast.author}</p><p className="podcast-description expanded">{podcast.description || 'No description provided by the publisher.'}</p>{error ? <p className="preview-warning" role="status">{error}</p> : null}<div className="podcast-actions"><button className="primary-button" disabled={saving} onClick={subscribe}>{saving ? 'Subscribing...' : 'Subscribe and add'}</button></div></div></header><section className="content-section"><div className="section-heading"><h2>Latest episodes</h2><span className="muted-count">{episodes.length}</span></div>{episodes.length === 0 ? <p className="quiet-message">No episodes are available to preview from this publisher.</p> : <div className="preview-episode-list">{episodes.slice(0, 12).map((episode) => { const expanded = expandedEpisodes.has(episode.id); const isCurrent = currentEpisode?.id === episode.id; return <article className="preview-episode" key={episode.id}><div><h3>{episode.title}</h3><p className={expanded ? 'preview-episode-description expanded' : 'preview-episode-description'}>{episode.description || 'No episode description.'}</p>{episode.description ? <button className="preview-description-toggle" onClick={() => setExpandedEpisodes((current) => { const next = new Set(current); if (next.has(episode.id)) next.delete(episode.id); else next.add(episode.id); return next })}>{expanded ? 'Hide description' : 'Read more'}</button> : null}</div><div className="preview-episode-actions"><span>{new Date(episode.publishedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })} · {formatDuration(episode.duration)}</span><PlayButton playing={isCurrent && playing} onClick={() => playPreviewEpisode(episode)} label={`${isCurrent && playing ? 'Pause' : 'Play'} ${episode.title}`} small /></div></article> })}</div>}</section></div>
+    return <div className="page podcast-page preview-page"><button className="back-link" onClick={() => onNavigate('/search')}><Icon name="back" size={17} /> Back to search</button><header className="podcast-header"><Artwork src={podcast.artwork} alt={`${podcast.title} artwork`} size="large" /><div className="podcast-header-copy"><p className="eyebrow">Podcast preview · {podcast.category}</p><h1>{podcast.title}</h1><p className="podcast-author">{podcast.author}</p><p className="podcast-description expanded">{podcast.description || 'No description provided by the publisher.'}</p>{error ? <p className="preview-warning" role="status">{error}</p> : null}<div className="podcast-actions"><SubscribeButton podcastId={podcast.id} podcast={podcast} episodes={episodes} onNavigate={onNavigate} /></div></div></header><section className="content-section"><div className="section-heading"><h2>Latest episodes</h2><span className="muted-count">{episodes.length}</span></div>{episodes.length === 0 ? <p className="quiet-message">No episodes are available to preview from this publisher.</p> : <div className="preview-episode-list">{episodes.slice(0, 12).map((episode) => { const expanded = expandedEpisodes.has(episode.id); const isCurrent = currentEpisode?.id === episode.id; return <article className="preview-episode" key={episode.id}><div><h3>{episode.title}</h3><p className={expanded ? 'preview-episode-description expanded' : 'preview-episode-description'}>{episode.description || 'No episode description.'}</p>{episode.description ? <button className="preview-description-toggle" onClick={() => setExpandedEpisodes((current) => { const next = new Set(current); if (next.has(episode.id)) next.delete(episode.id); else next.add(episode.id); return next })}>{expanded ? 'Hide description' : 'Read more'}</button> : null}</div><div className="preview-episode-actions"><span>{new Date(episode.publishedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })} · {formatDuration(episode.duration)}</span><PlayButton playing={isCurrent && playing} onClick={() => playPreviewEpisode(episode)} label={`${isCurrent && playing ? 'Pause' : 'Play'} ${episode.title}`} small /></div></article> })}</div>}</section></div>
 }
 
 function readPreview(): OnlinePodcastResult | null {

@@ -1,18 +1,48 @@
 import { useEffect, useState } from 'react'
-import { getAllPodcasts, saveImportedCatalog } from '../data/catalog'
 import { CATEGORIES } from '../data/categories'
 import { CategoryArt } from '../components/CategoryArt'
 import { Icon } from '../components/Icon'
-import { importPodcast, searchOnlinePodcasts, type OnlinePodcastResult } from '../services/onlinePodcasts'
+import { SubscribeButton } from '../components/SubscribeButton'
+import { searchOnlinePodcasts, type OnlinePodcastResult } from '../services/onlinePodcasts'
+
+const SEARCH_CACHE_KEY = 'quietcasts:last-search'
+
+function readCachedSearch(): { query: string; results: OnlinePodcastResult[] } {
+    try {
+        const raw = sessionStorage.getItem(SEARCH_CACHE_KEY)
+        if (!raw) return { query: '', results: [] }
+        const parsed = JSON.parse(raw) as { query?: unknown; results?: unknown }
+        return {
+            query: typeof parsed.query === 'string' ? parsed.query : '',
+            // Guarded because a stale or hand-edited payload would otherwise reach .map().
+            results: Array.isArray(parsed.results) ? parsed.results as OnlinePodcastResult[] : [],
+        }
+    } catch {
+        return { query: '', results: [] }
+    }
+}
 
 export function Search({ onNavigate }: { onNavigate: (path: string) => void }) {
-    const [query, setQuery] = useState('')
-    const [onlineResults, setOnlineResults] = useState<OnlinePodcastResult[]>([])
+    const [restored] = useState(readCachedSearch)
+    const [query, setQuery] = useState(restored.query)
+    const [onlineResults, setOnlineResults] = useState<OnlinePodcastResult[]>(restored.results)
     const [onlineLoading, setOnlineLoading] = useState(false)
     const [onlineError, setOnlineError] = useState('')
-    const [importingId, setImportingId] = useState<string | null>(null)
-    const [importedIds, setImportedIds] = useState(() => new Set(getAllPodcasts().filter((podcast) => podcast.id.startsWith('online-')).map((podcast) => podcast.id)))
+    const [categoriesExpanded, setCategoriesExpanded] = useState(restored.query.trim().length === 0)
     const normalized = query.trim().toLowerCase()
+
+    // Results survive a trip to a podcast page and back, so the query is never lost.
+    useEffect(() => {
+        if (!query.trim()) {
+            sessionStorage.removeItem(SEARCH_CACHE_KEY)
+            return
+        }
+        try {
+            sessionStorage.setItem(SEARCH_CACHE_KEY, JSON.stringify({ query, results: onlineResults }))
+        } catch {
+            // Session storage can be unavailable; the search still works without caching.
+        }
+    }, [query, onlineResults])
 
     useEffect(() => {
         if (normalized.length < 2) {
@@ -38,25 +68,8 @@ export function Search({ onNavigate }: { onNavigate: (path: string) => void }) {
         }
     }, [normalized])
 
-    const addPodcast = async (result: OnlinePodcastResult) => {
-        setImportingId(result.id)
-        setOnlineError('')
-        try {
-            const imported = await importPodcast(result)
-            saveImportedCatalog(imported.podcast, imported.episodes)
-            setImportedIds((current) => new Set(current).add(result.id))
-            onNavigate(`/podcast/${result.id}`)
-        } catch {
-            setOnlineError('This podcast could not be added. Its RSS feed may block browser access.')
-        } finally {
-            setImportingId(null)
-        }
-    }
-
-    const previewPodcast = (result: OnlinePodcastResult) => {
-        sessionStorage.setItem('quietcasts:online-preview', JSON.stringify(result))
-        onNavigate(`/preview/${result.id}`)
-    }
+    const searching = normalized.length > 0
+    const showCategories = !searching && categoriesExpanded
 
     return (
         <div className="page search-page">
@@ -70,19 +83,33 @@ export function Search({ onNavigate }: { onNavigate: (path: string) => void }) {
                 {query ? <button onClick={() => setQuery('')} aria-label="Clear search"><Icon name="close" size={18} /></button> : null}
             </label>
 
-            <div className="search-categories">
-                <p className="quiet-message">Explore by category</p>
-                <div className="category-grid">
-                    {CATEGORIES.map((category) => (
-                        <button key={category} className="category-card" onClick={() => onNavigate(`/category/${encodeURIComponent(category)}`)}>
-                            <CategoryArt category={category} className="category-card-art" />
-                            <span className="category-card-label">{category}</span>
+            {showCategories ? (
+                <div className="search-categories">
+                    <div className="category-explore-head">
+                        <p className="quiet-message">Explore by category</p>
+                        <button className="text-button" onClick={() => setCategoriesExpanded(false)}>
+                            <Icon name="close" size={15} /> Hide
                         </button>
-                    ))}
+                    </div>
+                    <div className="category-grid">
+                        {CATEGORIES.map((category) => (
+                            <button key={category} className="category-card" onClick={() => onNavigate(`/category/${encodeURIComponent(category)}`)}>
+                                <CategoryArt category={category} className="category-card-art" />
+                                <span className="category-card-label">{category}</span>
+                            </button>
+                        ))}
+                    </div>
                 </div>
-            </div>
+            ) : (
+                <button
+                    className="text-button category-browse-toggle"
+                    onClick={() => { setQuery(''); setCategoriesExpanded(true) }}
+                >
+                    <Icon name="grid" size={16} /> Browse categories
+                </button>
+            )}
 
-            {normalized.length > 0 && (
+            {searching && (
                 <section className="content-section online-section">
                     <div className="section-heading">
                         <h2>Search online</h2>
@@ -94,7 +121,7 @@ export function Search({ onNavigate }: { onNavigate: (path: string) => void }) {
                         <div className="online-results">
                             {onlineResults.map((result) => (
                                 <article className="online-podcast" key={result.id}>
-                                    <button className="online-podcast-info" onClick={() => previewPodcast(result)}>
+                                    <button className="online-podcast-info" onClick={() => { sessionStorage.setItem('quietcasts:online-preview', JSON.stringify(result)); onNavigate(`/preview/${result.id}`) }}>
                                         <img src={result.artwork} alt="" />
                                         <span>
                                             <strong>{result.title}</strong>
@@ -102,9 +129,7 @@ export function Search({ onNavigate }: { onNavigate: (path: string) => void }) {
                                             <em>Preview podcast</em>
                                         </span>
                                     </button>
-                                    <button className="secondary-button" disabled={importingId === result.id || importedIds.has(result.id)} onClick={() => void addPodcast(result)}>
-                                        {importingId === result.id ? 'Adding...' : importedIds.has(result.id) ? 'Added' : 'Add podcast'}
-                                    </button>
+                                    <SubscribeButton podcastId={result.id} result={result} onNavigate={onNavigate} />
                                 </article>
                             ))}
                         </div>

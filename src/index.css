@@ -943,6 +943,35 @@ select:focus-visible {
     text-align: center;
 }
 .search-categories > .quiet-message { margin-bottom: 0; }
+
+.category-explore-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.category-explore-head > .quiet-message { margin-bottom: 0; }
+
+.category-explore-head .text-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.category-browse-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 18px;
+    padding: 9px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+}
+
+.category-browse-toggle:hover { border-color: var(--accent); }
 .category-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
@@ -1088,9 +1117,6 @@ select:focus-visible {
 
 .result-card .secondary-button {
     width: 100%;
-    min-height: 36px;
-    padding: 0 12px;
-    font-size: 13px;
 }
 
 .result-card .secondary-button:disabled { cursor: default; opacity: 0.6; }
@@ -1208,12 +1234,25 @@ select:focus-visible {
     white-space: nowrap;
 }
 
-.online-podcast strong { font-size: 14px; font-weight: 700; }
+.online-podcast strong { color: var(--text); font-size: 14px; font-weight: 700; }
 .online-podcast span, .online-podcast small { color: var(--muted); font-size: 12px; }
 .online-podcast small { font-size: 11px; }
 
+/* The info column is a button, so give titles the full-strength text colour. */
+.online-podcast-info > span > strong { color: var(--text); }
+.online-podcast:hover .online-podcast-info > span > strong { color: var(--accent); }
+
 .online-podcast .secondary-button { flex: 0 0 auto; min-height: 34px; padding: 0 12px; font-size: 13px; }
 .online-podcast .secondary-button:disabled { cursor: default; opacity: 0.6; }
+
+.secondary-button.compact {
+    width: 100%;
+    min-height: 36px;
+    padding: 0 12px;
+    font-size: 13px;
+}
+
+.secondary-button.compact:disabled { cursor: default; opacity: 0.6; }
 
 /* ── PODCAST PAGE ── */
 .podcast-header {

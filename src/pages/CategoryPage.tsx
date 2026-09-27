@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { getAllPodcasts, saveImportedCatalog } from '../data/catalog'
-import { isKnownCategory, rankByCategory, type Category } from '../data/categories'
+import { isKnownCategory, rankByCategory } from '../data/categories'
 import { CategoryArt } from '../components/CategoryArt'
 import { Icon } from '../components/Icon'
-import { importPodcast, searchOnlinePodcasts, type OnlinePodcastResult } from '../services/onlinePodcasts'
+import { SubscribeButton } from '../components/SubscribeButton'
+import { searchOnlinePodcasts, type OnlinePodcastResult } from '../services/onlinePodcasts'
 
 const RESULT_LIMIT = 24
 
@@ -11,8 +11,6 @@ export function CategoryPage({ category, onNavigate }: { category: string; onNav
     const [results, setResults] = useState<OnlinePodcastResult[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
-    const [importingId, setImportingId] = useState<string | null>(null)
-    const [importedIds, setImportedIds] = useState(() => new Set(getAllPodcasts().filter((podcast) => podcast.id.startsWith('online-')).map((podcast) => podcast.id)))
     const known = isKnownCategory(category)
 
     useEffect(() => {
@@ -32,20 +30,6 @@ export function CategoryPage({ category, onNavigate }: { category: string; onNav
         })
         return () => { active = false }
     }, [category, known])
-
-    const addPodcast = async (result: OnlinePodcastResult) => {
-        setImportingId(result.id)
-        try {
-            const imported = await importPodcast(result)
-            saveImportedCatalog(imported.podcast, imported.episodes)
-            setImportedIds((current) => new Set(current).add(result.id))
-            onNavigate(`/podcast/${result.id}`)
-        } catch {
-            setError('This podcast could not be added. Its RSS feed may block browser access.')
-        } finally {
-            setImportingId(null)
-        }
-    }
 
     const previewPodcast = (result: OnlinePodcastResult) => {
         sessionStorage.setItem('quietcasts:online-preview', JSON.stringify(result))
@@ -91,26 +75,17 @@ export function CategoryPage({ category, onNavigate }: { category: string; onNav
                             <p className="quiet-message">No podcasts were found in this category.</p>
                         ) : (
                             <div className="category-results">
-                                {results.map((result) => {
-                                    const added = importedIds.has(result.id)
-                                    return (
-                                        <article className="result-card" key={result.id}>
-                                            <button className="result-card-main" onClick={() => previewPodcast(result)}>
-                                                <img src={result.artwork} alt="" />
-                                                <strong>{result.title}</strong>
-                                                <span>{result.author}</span>
-                                                <small>{result.category}</small>
-                                            </button>
-                                            <button
-                                                className="secondary-button"
-                                                disabled={importingId === result.id || added}
-                                                onClick={() => void addPodcast(result)}
-                                            >
-                                                {importingId === result.id ? 'Adding...' : added ? 'Added' : 'Add'}
-                                            </button>
-                                        </article>
-                                    )
-                                })}
+                                {results.map((result) => (
+                                    <article className="result-card" key={result.id}>
+                                        <button className="result-card-main" onClick={() => previewPodcast(result)}>
+                                            <img src={result.artwork} alt="" />
+                                            <strong>{result.title}</strong>
+                                            <span>{result.author}</span>
+                                            <small>{result.category}</small>
+                                        </button>
+                                        <SubscribeButton podcastId={result.id} result={result} compact onNavigate={onNavigate} />
+                                    </article>
+                                ))}
                             </div>
                         )}
                     </section>
