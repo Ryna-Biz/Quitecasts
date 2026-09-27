@@ -85,7 +85,7 @@ export function Search({ onNavigate }: { onNavigate: (path: string) => void }) {
                 <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search podcasts and episodes" aria-label="Search podcasts and episodes" />
                 {query ? <button onClick={() => setQuery('')} aria-label="Clear search"><Icon name="close" size={18} /></button> : null}
             </label>
-            {normalized === '' ? (
+            {!normalized || normalized === '' ? (
                 <div className="search-categories">
                     <p className="quiet-message">Explore by category</p>
                     <div className="category-grid">
