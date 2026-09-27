@@ -41,19 +41,23 @@ interface TopPodcastsResponse {
 }
 
 export async function fetchTopPodcasts(limit = 4): Promise<Podcast[]> {
-    const response = await fetch(`https://rss.applemarketingtools.com/api/v2/us/podcasts/top/${limit}/podcasts.json`).catch(() => null)
-    if (response?.ok) {
-        const data = await response.json() as TopPodcastsResponse
-        const chartResults = (data.feed?.results ?? []).filter((result): result is TopPodcastResult & { id: string; name: string; artworkUrl100: string } => Boolean(result.id && result.name && result.artworkUrl100)).map((result) => ({
-            id: `top-${result.id}`,
-            title: result.name,
-            author: result.artistName ?? 'Podcast publisher',
-            description: 'Currently ranked among the top podcasts on Apple Podcasts.',
-            artwork: result.artworkUrl100,
-            category: result.genres?.[0]?.name ?? 'Podcast',
-            pageUrl: result.url,
-        }))
-        if (chartResults.length > 0) return chartResults
+    try {
+        const response = await fetch(`https://corsproxy.io/?${encodeURIComponent(`https://rss.applemarketingtools.com/api/v2/us/podcasts/top/${limit}/podcasts.json`)}`)
+        if (response?.ok) {
+            const data = await response.json() as TopPodcastsResponse
+            const chartResults = (data.feed?.results ?? []).filter((result): result is TopPodcastResult & { id: string; name: string; artworkUrl100: string } => Boolean(result.id && result.name && result.artworkUrl100)).map((result) => ({
+                id: `top-${result.id}`,
+                title: result.name,
+                author: result.artistName ?? 'Podcast publisher',
+                description: 'Currently ranked among the top podcasts on Apple Podcasts.',
+                artwork: result.artworkUrl100,
+                category: result.genres?.[0]?.name ?? 'Podcast',
+                pageUrl: result.url,
+            }))
+            if (chartResults.length > 0) return chartResults
+        }
+    } catch (e) {
+        console.error('Failed to fetch top podcasts:', e)
     }
 
     const popularSearches = ['The Daily', 'Crime Junkie', 'Huberman Lab', 'SmartLess']
