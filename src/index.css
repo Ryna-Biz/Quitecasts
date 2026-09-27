@@ -937,32 +937,50 @@ select:focus-visible {
 /* ── SEARCH CATEGORIES ── */
 .search-categories {
     margin-top: 32px;
+    padding: 20px;
+    border-radius: var(--radius-md);
+    background: var(--surface-muted);
     text-align: center;
 }
+.search-categories > .quiet-message { margin-bottom: 0; }
 .category-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
     gap: 12px;
     margin-top: 20px;
 }
 .category-card {
-    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    padding: 9px 9px 12px;
     background: var(--surface);
     border: 1.5px solid var(--border);
     border-radius: var(--radius-md);
-    color: var(--text);
-    font-weight: 600;
-    font-size: 14px;
-    transition: all 0.2s ease;
     box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
 }
 .category-card:hover {
+    transform: translateY(-3px);
     border-color: var(--accent);
-    color: var(--accent);
-    transform: translateY(-2px);
     box-shadow: var(--shadow-md);
-    background: var(--accent-soft);
 }
+.category-card-art {
+    display: block;
+    width: 100%;
+    /* Must match the artwork viewBox ratio, otherwise preserveAspectRatio letterboxes
+       the square SVG inside a wider box instead of filling it. */
+    aspect-ratio: 1;
+    border-radius: var(--radius-sm);
+}
+.category-card-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    transition: color 0.15s ease;
+}
+.category-card:hover .category-card-label { color: var(--accent); }
 
 .search-field {
     display: flex;

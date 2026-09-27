@@ -2,8 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { getAllEpisodes, getAllPodcasts, saveImportedCatalog } from '../data/catalog'
 import { EpisodeRow } from '../components/EpisodeRow'
 import { PodcastRow } from '../components/PodcastRow'
+import { CategoryArt } from '../components/CategoryArt'
 import { Icon } from '../components/Icon'
 import { importPodcast, searchOnlinePodcasts, type OnlinePodcastResult } from '../services/onlinePodcasts'
+
+const CATEGORIES = ['Arts', 'Comedy', 'Education', 'Finance', 'Health', 'Relationships', 'True Crime', 'Technology']
 
 export function Search({ onNavigate }: { onNavigate: (path: string) => void }) {
     const [query, setQuery] = useState('')
@@ -87,53 +90,18 @@ export function Search({ onNavigate }: { onNavigate: (path: string) => void }) {
             </label>
             
             {/* Category cards - always visible */}
-            <div style={{ 
-                marginTop: '32px', 
-                textAlign: 'center',
-                padding: '20px',
-                backgroundColor: 'var(--surface-muted)',
-                borderRadius: 'var(--radius-md)'
-            }}>
-                <p className="quiet-message" style={{ 
-                    marginBottom: '20px',
-                    color: 'var(--muted)',
-                    fontSize: '14px'
-                }}>Explore by category</p>
-                <div style={{ 
-                    display: 'grid', 
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', 
-                    gap: '12px' 
-                }}>
-                    {['Arts', 'Comedy', 'Education', 'Finance', 'Health', 'Relationships', 'True Crime', 'Technology'].map((category) => (
-                        <button 
-                            key={category} 
-                            onClick={() => setQuery(category)}
-                            style={{
-                                padding: '16px',
-                                backgroundColor: 'var(--surface)',
-                                border: '1.5px solid var(--border)',
-                                borderRadius: 'var(--radius-md)',
-                                color: 'var(--text)',
-                                fontWeight: '600',
-                                fontSize: '14px',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease'
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = 'var(--accent-soft)';
-                                e.currentTarget.style.color = 'var(--accent)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = 'var(--surface)';
-                                e.currentTarget.style.color = 'var(--text)';
-                            }}
-                        >
-                            {category}
+            <div className="search-categories">
+                <p className="quiet-message">Explore by category</p>
+                <div className="category-grid">
+                    {CATEGORIES.map((category) => (
+                        <button key={category} className="category-card" onClick={() => setQuery(category)}>
+                            <CategoryArt category={category} className="category-card-art" />
+                            <span className="category-card-label">{category}</span>
                         </button>
                     ))}
                 </div>
             </div>
-            
+
             {/* Show search results when there's a query - simplified */}
             {normalized && normalized.length > 0 && (
                 <div className="search-results">
