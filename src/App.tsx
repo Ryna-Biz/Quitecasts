@@ -8,6 +8,7 @@ import { NotFound } from './pages/NotFound'
 import { PlayerPage } from './pages/PlayerPage'
 import { PodcastPage } from './pages/PodcastPage'
 import { Search } from './pages/Search'
+import { CategoryPage } from './pages/CategoryPage'
 import { Subscriptions } from './pages/Subscriptions'
 import { OnlinePodcastPage } from './pages/OnlinePodcastPage'
 import { Landing } from './pages/Landing'
@@ -67,6 +68,7 @@ function AppContent() {
     else if (path === '/activity') page = <Activity />
     else if (path === '/player') page = <PlayerPage onNavigate={navigate} />
     else if (segments[0] === 'preview' && segments[1]) page = <OnlinePodcastPage onNavigate={navigate} />
+    else if (segments[0] === 'category' && segments[1]) page = <CategoryPage category={decodeURIComponent(segments[1])} onNavigate={navigate} />
     else if (segments[0] === 'podcast' && segments[1]) page = <PodcastPage id={segments[1]} onNavigate={navigate} />
 
     return <PlayerProvider><Layout path={path} theme={theme} onToggleTheme={() => setTheme((current) => current === 'light' ? 'dark' : 'light')} onNavigate={navigate}>{page}</Layout></PlayerProvider>

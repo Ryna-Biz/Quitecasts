@@ -27,9 +27,25 @@ const artwork: Record<string, CategoryArtwork> = {
         from: '#14B8A6', to: '#10B981',
         glyph: <><path d="M12 20.2s-7.2-4.4-7.2-9.4A4.2 4.2 0 0 1 12 8.3a4.2 4.2 0 0 1 7.2 2.5c0 5-7.2 9.4-7.2 9.4Z" /><path d="M4.8 13.2h3.4l1.6-2.8 2.2 4.6 1.5-2.6h3.4" /></>,
     },
+    History: {
+        from: '#B45309', to: '#D97706',
+        glyph: <><path d="M7 4h10M7 20h10" /><path d="M8.2 4c0 4 7.8 4.2 7.8 8s-7.8 4-7.8 8" /><path d="M15.8 4c0 4-7.8 4.2-7.8 8s7.8 4 7.8 8" /></>,
+    },
+    News: {
+        from: '#B91C1C', to: '#F97316',
+        glyph: <><rect x="3.5" y="5" width="14" height="14" rx="1.6" /><path d="M17.5 9.5H19a1 1 0 0 1 1 1v7a1.5 1.5 0 0 1-3 0Z" /><path d="M6.5 9.2h8M6.5 12.2h8M6.5 15.2h5" /></>,
+    },
     Relationships: {
         from: '#EC4899', to: '#8B5CF6',
         glyph: <><circle cx="9.3" cy="14" r="5.6" /><circle cx="14.7" cy="14" r="5.6" /></>,
+    },
+    Science: {
+        from: '#06B6D4', to: '#3B82F6',
+        glyph: <><path d="M9.6 3.6v5.3L4.7 17.3a2 2 0 0 0 1.7 3h11.2a2 2 0 0 0 1.7-3l-4.9-8.4V3.6" /><path d="M8.2 3.6h7.6" /><path d="M7 14.4h10" /><circle cx="10.6" cy="17" r=".7" /><circle cx="13.6" cy="18.2" r=".7" /></>,
+    },
+    Sports: {
+        from: '#16A34A', to: '#84CC16',
+        glyph: <><path d="M3.5 12h17" /><path d="M7.2 7.6v8.8" /><path d="M16.8 7.6v8.8" /><path d="M4.6 9.6v4.8" /><path d="M19.4 9.6v4.8" /></>,
     },
     'True Crime': {
         from: '#64748B', to: '#1E1B4B',

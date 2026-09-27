@@ -262,7 +262,6 @@ export function Home({ onNavigate }: { onNavigate: (path: string) => void }) {
                     background-size: 400% 100%;
                     animation: shimmer 1.5s infinite;
                 }
-                @keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
             `}</style>
         </div>
     )

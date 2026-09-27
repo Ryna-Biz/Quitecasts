@@ -132,12 +132,12 @@ async function loadTopPodcasts(limit: number): Promise<Podcast[]> {
     }))
 }
 
-export async function searchOnlinePodcasts(query: string): Promise<OnlinePodcastResult[]> {
+export async function searchOnlinePodcasts(query: string, limit = 12): Promise<OnlinePodcastResult[]> {
     const url = new URL('https://itunes.apple.com/search')
     url.searchParams.set('term', query)
     url.searchParams.set('media', 'podcast')
     url.searchParams.set('entity', 'podcast')
-    url.searchParams.set('limit', '12')
+    url.searchParams.set('limit', String(limit))
     const response = await fetch(url)
     if (!response.ok) throw new Error('Online podcast search is unavailable.')
     const data = await response.json() as ItunesResponse
