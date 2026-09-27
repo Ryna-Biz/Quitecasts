@@ -162,24 +162,26 @@ export function Search({ onNavigate }: { onNavigate: (path: string) => void }) {
                             </div>
                         </div>
                     </section>
-                    {matchedPodcasts.length > 0 && (
+                    {matchedPodcasts.length > 0 ? (
                         <section className="content-section">
                             <div className="section-heading">
                                 <h2>In your library</h2>
                                 <div className="podcast-list">
                                     {visiblePodcasts.map((podcast) => <PodcastRow key={podcast.id} podcast={podcast} onOpen={() => onNavigate(`/podcast/${podcast.id}`)} />)}
                                 </div>
-                            </section>
+                            </div>
+                        </section>
                         )
                     : null}
-                    {matchedEpisodes.length > 0 && (
+                    {matchedEpisodes.length > 0 ? (
                         <section className="content-section">
                             <div className="section-heading">
                                 <h2>Episodes</h2>
                                 <div className="episode-list">
-                                    {visibleEpisodes.map((episode) => <EpisodeRow key={episode.id} episode={episode} onOpen={() => onNavigate(`/episode/${episode.id}`)} />)}
+                                    {visibleEpisodes.map((episode) => <EpisodeRow key={episode.id} episode={episode} />)}
                                 </div>
-                            </section>
+                            </div>
+                        </section>
                         )
                     : null}
                 </div>
