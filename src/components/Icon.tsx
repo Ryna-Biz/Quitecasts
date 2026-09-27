@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react'
 
-export type IconName = 'home' | 'search' | 'subscriptions' | 'activity' | 'play' | 'pause' | 'back' | 'forward' | 'chevron' | 'plus' | 'check' | 'download' | 'queue' | 'volume' | 'close' | 'sun' | 'moon'
+export type IconName = 'home' | 'search' | 'subscriptions' | 'activity' | 'play' | 'pause' | 'back' | 'forward' | 'chevron' | 'plus' | 'check' | 'download' | 'queue' | 'volume' | 'close' | 'sun' | 'moon' | 'list' | 'grid' | 'sort'
 
 export function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
     const common = { width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, 'aria-hidden': true }
@@ -22,6 +22,9 @@ export function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
         close: <><path d="m6 6 12 12M18 6 6 18" /></>,
         sun: <><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" /></>,
         moon: <path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5 8.5 8.5 0 1 0 20.5 14.5Z" />,
+        list: <><path d="M9 6h11M9 12h11M9 18h11" /><path d="M4.5 6h.5M4.5 12h.5M4.5 18h.5" /></>,
+        grid: <><rect x="4" y="4" width="7" height="7" rx="1.6" /><rect x="13" y="4" width="7" height="7" rx="1.6" /><rect x="4" y="13" width="7" height="7" rx="1.6" /><rect x="13" y="13" width="7" height="7" rx="1.6" /></>,
+        sort: <><path d="M4 6h11M4 11h8M4 16h5" /><path d="m16.5 12.5 3.5 3.5 3.5-3.5" /><path d="M20 16V4" /></>,
     }
     return <svg {...common}>{paths[name]}</svg>
 }

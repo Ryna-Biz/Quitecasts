@@ -9,7 +9,14 @@ const keys = {
     downloads: 'quietcasts:downloads',
     importedPodcasts: 'quietcasts:imported-podcasts',
     importedEpisodes: 'quietcasts:imported-episodes',
+    viewMode: 'quietcasts:view-mode',
+    subscriptionSort: 'quietcasts:subscription-sort',
 } as const
+
+export type ViewMode = 'list' | 'grid'
+export type SubscriptionSort = 'recent' | 'lastPlayed' | 'title' | 'author' | 'category'
+
+const subscriptionSorts: readonly SubscriptionSort[] = ['recent', 'lastPlayed', 'title', 'author', 'category']
 
 function read<T>(key: string, fallback: T): T {
     try {
@@ -48,4 +55,11 @@ export const storage = {
     setImportedPodcasts: (value: Podcast[]) => write(keys.importedPodcasts, value),
     getImportedEpisodes: () => read<Episode[]>(keys.importedEpisodes, []),
     setImportedEpisodes: (value: Episode[]) => write(keys.importedEpisodes, value),
+    getViewMode: (): ViewMode => (read<ViewMode>(keys.viewMode, 'list') === 'grid' ? 'grid' : 'list'),
+    setViewMode: (value: ViewMode) => write(keys.viewMode, value),
+    getSubscriptionSort: (): SubscriptionSort => {
+        const saved = read<SubscriptionSort>(keys.subscriptionSort, 'recent')
+        return subscriptionSorts.includes(saved) ? saved : 'recent'
+    },
+    setSubscriptionSort: (value: SubscriptionSort) => write(keys.subscriptionSort, value),
 }
