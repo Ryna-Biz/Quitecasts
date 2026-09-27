@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react'
 
-export type IconName = 'home' | 'search' | 'subscriptions' | 'activity' | 'play' | 'pause' | 'back' | 'forward' | 'chevron' | 'plus' | 'check' | 'download' | 'queue' | 'volume' | 'close' | 'sun' | 'moon' | 'list' | 'grid' | 'sort'
+export type IconName = 'home' | 'search' | 'subscriptions' | 'activity' | 'play' | 'pause' | 'back' | 'forward' | 'chevron' | 'plus' | 'check' | 'download' | 'queue' | 'volume' | 'close' | 'sun' | 'moon' | 'list' | 'grid' | 'sort' | 'refresh'
 
 export function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
     const common = { width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, 'aria-hidden': true }
@@ -25,6 +25,7 @@ export function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
         list: <><path d="M9 6h11M9 12h11M9 18h11" /><path d="M4.5 6h.5M4.5 12h.5M4.5 18h.5" /></>,
         grid: <><rect x="4" y="4" width="7" height="7" rx="1.6" /><rect x="13" y="4" width="7" height="7" rx="1.6" /><rect x="4" y="13" width="7" height="7" rx="1.6" /><rect x="13" y="13" width="7" height="7" rx="1.6" /></>,
         sort: <><path d="M4 6h11M4 11h8M4 16h5" /><path d="m16.5 12.5 3.5 3.5 3.5-3.5" /><path d="M20 16V4" /></>,
+        refresh: <><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /></>,
     }
     return <svg {...common}>{paths[name]}</svg>
 }

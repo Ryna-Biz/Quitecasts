@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
-import { getAllEpisodes } from '../data/catalog'
-import { storage } from '../services/storage'
-import { fetchTopPodcasts, searchOnlinePodcasts } from '../services/onlinePodcasts'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { getAllEpisodes, getAllPodcasts } from '../data/catalog'
+import { fetchTopPodcasts, getCachedTopPodcasts, searchOnlinePodcasts } from '../services/onlinePodcasts'
+import { refreshSubscriptions } from '../services/subscriptionRefresh'
 import type { Podcast } from '../types/podcast'
 import { EpisodeRow } from '../components/EpisodeRow'
 import { PodcastRow } from '../components/PodcastRow'
+import { Icon } from '../components/Icon'
 import { useAuth } from '../context/AuthContext'
 import { usePlayer } from '../context/PlayerContext'
 
@@ -12,10 +13,19 @@ export function Home({ onNavigate }: { onNavigate: (path: string) => void }) {
     const { user } = useAuth()
     const { subscriptions } = usePlayer()
     const episodes = getAllEpisodes()
-    const [topPodcasts, setTopPodcasts] = useState<Podcast[]>([])
+    const [topPodcasts, setTopPodcasts] = useState<Podcast[]>(() => getCachedTopPodcasts() ?? [])
     const [topLoading, setTopLoading] = useState(true)
     const [topError, setTopError] = useState(false)
+    const [previewError, setPreviewError] = useState(false)
     const [openingPodcastId, setOpeningPodcastId] = useState<string | null>(null)
+    const [refreshingEpisodes, setRefreshingEpisodes] = useState(false)
+    const [episodeRefreshProgress, setEpisodeRefreshProgress] = useState<{ done: number; total: number } | null>(null)
+    const [episodeRefreshSummary, setEpisodeRefreshSummary] = useState<string | null>(null)
+    const subscribedPodcasts = useMemo(
+        () => getAllPodcasts().filter((podcast) => subscriptions.includes(podcast.id)),
+        [subscriptions],
+    )
+    const feedableCount = subscribedPodcasts.filter((podcast) => podcast.feedUrl).length
     const subscribedEpisodes = episodes
         .filter((episode) => subscriptions.includes(episode.podcastId))
         .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
@@ -32,29 +42,66 @@ export function Home({ onNavigate }: { onNavigate: (path: string) => void }) {
 
     const openTopPodcast = async (podcast: Podcast) => {
         setOpeningPodcastId(podcast.id)
+        setPreviewError(false)
         try {
             const [result] = await searchOnlinePodcasts(podcast.title)
             if (!result) throw new Error('Podcast not found')
             sessionStorage.setItem('quietcasts:online-preview', JSON.stringify(result))
             onNavigate(`/preview/${result.id}`)
         } catch {
-            setTopError(true)
+            setPreviewError(true)
         } finally {
             setOpeningPodcastId(null)
         }
     }
 
-    useEffect(() => {
-        let active = true
-        void fetchTopPodcasts().then((results) => {
-            if (active) setTopPodcasts(results)
-        }).catch(() => {
-            if (active) setTopError(true)
-        }).finally(() => {
-            if (active) setTopLoading(false)
-        })
-        return () => { active = false }
+    const loadTopPodcasts = useCallback(async (force = false) => {
+        setTopLoading(true)
+        setTopError(false)
+        try {
+            const results = await fetchTopPodcasts(undefined, { force })
+            if (results.length === 0) {
+                setTopError(true)
+            } else {
+                setTopPodcasts(results)
+            }
+        } catch {
+            setTopError(true)
+        } finally {
+            setTopLoading(false)
+        }
     }, [])
+
+    useEffect(() => {
+        void loadTopPodcasts()
+    }, [loadTopPodcasts])
+
+    const refreshNewEpisodes = async () => {
+        if (refreshingEpisodes) return
+        setRefreshingEpisodes(true)
+        setEpisodeRefreshSummary(null)
+        try {
+            const results = await refreshSubscriptions(subscribedPodcasts, (done, total) => setEpisodeRefreshProgress({ done, total }))
+            const newEpisodes = results.reduce((sum, result) => sum + result.newEpisodes, 0)
+            const failed = results.filter((result) => result.status === 'failed').length
+            const skipped = results.filter((result) => result.status === 'skipped').length
+            const summary = [newEpisodes > 0 ? `${newEpisodes} new episode${newEpisodes !== 1 ? 's' : ''}` : 'No new episodes']
+            if (failed > 0) summary.push(`${failed} feed${failed !== 1 ? 's' : ''} failed`)
+            if (skipped > 0) summary.push(`${skipped} show${skipped !== 1 ? 's' : ''} without an RSS feed`)
+            setEpisodeRefreshSummary(summary.join(' · '))
+        } catch {
+            setEpisodeRefreshSummary('Episodes could not be refreshed.')
+        } finally {
+            setRefreshingEpisodes(false)
+            setEpisodeRefreshProgress(null)
+        }
+    }
+
+    const episodeRefreshTitle = feedableCount === 0
+        ? 'Add a show from Search to refresh its episodes — the built-in library has no RSS feeds.'
+        : refreshingEpisodes
+            ? 'Refreshing…'
+            : 'Check your shows for new episodes'
 
     return (
         <div className="page home-page">
@@ -88,7 +135,29 @@ export function Home({ onNavigate }: { onNavigate: (path: string) => void }) {
                     title="New Episodes"
                     action={subscribedEpisodes.length > 4 ? 'See all' : undefined}
                     onAction={() => onNavigate('/subscriptions')}
-                />
+                >
+                    {subscribedPodcasts.length > 0 && (
+                        <button
+                            className="icon-button"
+                            onClick={() => void refreshNewEpisodes()}
+                            disabled={refreshingEpisodes || feedableCount === 0}
+                            aria-label="Refresh episodes"
+                            title={episodeRefreshTitle}
+                        >
+                            <span className={refreshingEpisodes ? 'refresh-button-icon' : undefined}>
+                                <Icon name="refresh" size={18} />
+                            </span>
+                        </button>
+                    )}
+                </SectionHeading>
+                {episodeRefreshProgress && (
+                    <p className="quiet-message" style={{ marginBottom: '12px' }}>
+                        Checking feeds · {episodeRefreshProgress.done} of {episodeRefreshProgress.total}
+                    </p>
+                )}
+                {!episodeRefreshProgress && episodeRefreshSummary && (
+                    <p className="quiet-message" style={{ marginBottom: '12px' }}>{episodeRefreshSummary}</p>
+                )}
                 {subscribedEpisodes.length > 0 ? (
                     <div className="episode-list">
                         {subscribedEpisodes.slice(0, 4).map((episode) => (
@@ -109,12 +178,24 @@ export function Home({ onNavigate }: { onNavigate: (path: string) => void }) {
 
             {/* Top Podcasts */}
             <section className="content-section">
-                <SectionHeading title="Top Podcasts Right Now" />
-                {topLoading ? (
+                <SectionHeading title="Top Podcasts Right Now">
+                    <button
+                        className="icon-button"
+                        onClick={() => void loadTopPodcasts(true)}
+                        disabled={topLoading}
+                        aria-label="Refresh top podcasts"
+                        title={topLoading ? 'Refreshing…' : 'Refresh top podcasts'}
+                    >
+                        <span className={topLoading ? 'refresh-button-icon' : undefined}>
+                            <Icon name="refresh" size={18} />
+                        </span>
+                    </button>
+                </SectionHeading>
+                {topLoading && topPodcasts.length === 0 ? (
                     <div className="home-loading-grid">
                         {[1,2,3,4,5].map((i) => <div key={i} className="skeleton-row" />)}
                     </div>
-                ) : topError ? (
+                ) : topError && topPodcasts.length === 0 ? (
                     <p className="quiet-message">Top podcasts are unavailable right now.</p>
                 ) : (
                     <div className="podcast-list">
@@ -127,7 +208,13 @@ export function Home({ onNavigate }: { onNavigate: (path: string) => void }) {
                         ))}
                     </div>
                 )}
+                {topError && topPodcasts.length > 0 && (
+                    <p className="quiet-message" style={{ marginTop: '12px' }}>
+                        Couldn't update the chart — showing the last results loaded.
+                    </p>
+                )}
                 {openingPodcastId && <p className="quiet-message" style={{ marginTop: '12px' }}>Opening podcast preview...</p>}
+                {previewError && <p className="quiet-message" style={{ marginTop: '12px' }}>That podcast could not be opened right now.</p>}
             </section>
 
             <style>{`
@@ -181,11 +268,16 @@ export function Home({ onNavigate }: { onNavigate: (path: string) => void }) {
     )
 }
 
-function SectionHeading({ title, action, onAction }: { title: string; action?: string; onAction?: () => void }) {
+function SectionHeading({ title, action, onAction, children }: { title: string; action?: string; onAction?: () => void; children?: ReactNode }) {
     return (
         <div className="section-heading">
             <h2>{title}</h2>
-            {action && <button className="text-button" onClick={onAction}>{action}</button>}
+            {(action || children) && (
+                <div className="section-heading-actions">
+                    {action && <button className="text-button" onClick={onAction}>{action}</button>}
+                    {children}
+                </div>
+            )}
         </div>
     )
 }

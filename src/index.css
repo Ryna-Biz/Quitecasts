@@ -454,6 +454,12 @@ select:focus-visible {
     font-weight: 700;
 }
 
+.section-heading-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 .text-button, .back-link {
     border: 0;
     padding: 0;
@@ -866,6 +872,21 @@ select:focus-visible {
     color: var(--accent);
     background: var(--accent-soft);
     border-color: var(--accent);
+}
+
+.icon-button:disabled,
+.icon-button:disabled:hover {
+    transform: none;
+    border-color: var(--border);
+    box-shadow: none;
+    color: var(--muted);
+    cursor: default;
+    opacity: 0.7;
+}
+
+.refresh-button-icon {
+    display: inline-flex;
+    animation: spin 0.9s linear infinite;
 }
 
 .primary-button, .secondary-button {

@@ -40,9 +40,65 @@ interface TopPodcastsResponse {
     }
 }
 
-export async function fetchTopPodcasts(limit = 4): Promise<Podcast[]> {
+const TOP_PODCASTS_LIMIT = 4
+const PROXY_TIMEOUT_MS = 8000
+const FEED_TIMEOUT_MS = 25000
+// Feeds can be enormous (a 20MB, 3000-item file is not unusual) but only the newest
+// handful is ever kept, so parsing every item would cost seconds for nothing.
+const MAX_FEED_ITEMS = 200
+const TOP_PODCASTS_TTL_MS = 10 * 60 * 1000
+
+const topPodcastsCacheKey = (limit: number) => `quietcasts:top-podcasts:${limit}`
+
+/** Returns cached chart data while it is still fresh, so repeat visits render instantly. */
+export function getCachedTopPodcasts(limit = TOP_PODCASTS_LIMIT): Podcast[] | null {
     try {
-        const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://rss.applemarketingtools.com/api/v2/us/podcasts/top/${limit}/podcasts.json`)}`)
+        const raw = sessionStorage.getItem(topPodcastsCacheKey(limit))
+        if (!raw) return null
+        const parsed = JSON.parse(raw) as { at: number; results: Podcast[] }
+        if (!Array.isArray(parsed.results) || Date.now() - parsed.at > TOP_PODCASTS_TTL_MS) {
+            sessionStorage.removeItem(topPodcastsCacheKey(limit))
+            return null
+        }
+        return parsed.results
+    } catch {
+        return null
+    }
+}
+
+function writeTopPodcastsCache(limit: number, results: Podcast[]) {
+    try {
+        sessionStorage.setItem(topPodcastsCacheKey(limit), JSON.stringify({ at: Date.now(), results }))
+    } catch {
+        // Session storage can be unavailable in private browsing or restricted contexts.
+    }
+}
+
+async function fetchWithTimeout(url: string, timeoutMs: number) {
+    const controller = new AbortController()
+    const timer = window.setTimeout(() => controller.abort(), timeoutMs)
+    try {
+        return await fetch(url, { signal: controller.signal })
+    } finally {
+        window.clearTimeout(timer)
+    }
+}
+
+export async function fetchTopPodcasts(limit = TOP_PODCASTS_LIMIT, options: { force?: boolean } = {}): Promise<Podcast[]> {
+    if (!options.force) {
+        const cached = getCachedTopPodcasts(limit)
+        if (cached) return cached
+    }
+
+    const results = await loadTopPodcasts(limit)
+    if (results.length > 0) writeTopPodcastsCache(limit, results)
+    return results
+}
+
+async function loadTopPodcasts(limit: number): Promise<Podcast[]> {
+    try {
+        const source = `https://rss.applemarketingtools.com/api/v2/us/podcasts/top/${limit}/podcasts.json`
+        const response = await fetchWithTimeout(`https://api.allorigins.win/get?url=${encodeURIComponent(source)}`, PROXY_TIMEOUT_MS)
         if (response?.ok) {
             const wrapper = await response.json()
             const data = JSON.parse(wrapper.contents) as TopPodcastsResponse
@@ -97,37 +153,54 @@ export async function searchOnlinePodcasts(query: string): Promise<OnlinePodcast
 }
 
 export async function importPodcast(result: OnlinePodcastResult): Promise<{ podcast: Podcast; episodes: Episode[] }> {
-    const response = await fetch(result.feedUrl)
+    return parseFeed(result.id, result.feedUrl, result, await fetchFeedText(result.feedUrl))
+}
+
+/** Re-reads an already-imported show's feed so newly published episodes can be merged in. */
+export async function fetchFeedEpisodes(podcast: Podcast): Promise<{ podcast: Podcast; episodes: Episode[] }> {
+    if (!podcast.feedUrl) throw new Error('This show has no RSS feed.')
+    return parseFeed(podcast.id, podcast.feedUrl, podcast, await fetchFeedText(podcast.feedUrl))
+}
+
+async function fetchFeedText(feedUrl: string) {
+    const response = await fetchWithTimeout(feedUrl, FEED_TIMEOUT_MS)
     if (!response.ok) throw new Error('This podcast feed could not be loaded.')
-    const xml = new DOMParser().parseFromString(await response.text(), 'application/xml')
+    return response.text()
+}
+
+function parseFeed(podcastId: string, feedUrl: string, fallback: Partial<Podcast>, xmlText: string): { podcast: Podcast; episodes: Episode[] } {
+    const xml = new DOMParser().parseFromString(xmlText, 'application/xml')
     if (xml.querySelector('parsererror')) throw new Error('This podcast feed is not valid RSS.')
     const channel = xml.querySelector('channel')
     if (!channel) throw new Error('This podcast feed has no channel.')
     const podcast: Podcast = {
-        id: result.id,
-        title: text(channel, 'title') || result.title,
-        author: text(channel, 'itunes\\:author, author') || result.author,
-        description: cleanText(text(channel, 'description')),
-        artwork: channel.querySelector('itunes\\:image')?.getAttribute('href') || result.artwork,
-        category: text(channel, 'itunes\\:category') || result.category,
-        feedUrl: result.feedUrl,
+        id: podcastId,
+        title: text(channel, 'title') || fallback.title || '',
+        author: text(channel, 'itunes\\:author, author') || fallback.author || '',
+        description: cleanText(text(channel, 'description')) || fallback.description || '',
+        artwork: channel.querySelector('itunes\\:image')?.getAttribute('href') || fallback.artwork || '',
+        category: text(channel, 'itunes\\:category') || fallback.category || 'Podcast',
+        feedUrl,
     }
-    const importedEpisodes = Array.from(channel.querySelectorAll('item')).map((item, index): Episode | null => {
+    const importedEpisodes = Array.from(channel.querySelectorAll('item')).slice(0, MAX_FEED_ITEMS).map((item): Episode | null => {
         const enclosure = item.querySelector('enclosure')
         const audioUrl = enclosure?.getAttribute('url')
         const title = text(item, 'title')
         if (!audioUrl || !title) return null
-        const rawDate = text(item, 'pubDate')
+        const publishedAt = toDate(text(item, 'pubDate'))
+        // Feeds are newest-first, so the item index is not a stable identity. Prefer the
+        // publisher's guid, then the media URL, so saved progress survives a refresh.
+        const identity = text(item, 'guid') || audioUrl || `${title}|${publishedAt}`
         return {
-            id: `${result.id}-episode-${index}-${hash(title)}`,
-            podcastId: result.id,
+            id: `${podcastId}-${hash(identity)}`,
+            podcastId,
             title,
             description: cleanText(text(item, 'description') || text(item, 'content\\:encoded')),
             audioUrl,
-            publishedAt: toDate(rawDate),
+            publishedAt,
             duration: parseDuration(text(item, 'itunes\\:duration')),
         }
-    }).filter((episode): episode is Episode => Boolean(episode)).slice(0, 50)
+    }).filter((episode): episode is Episode => Boolean(episode))
     return { podcast, episodes: importedEpisodes }
 }
 
