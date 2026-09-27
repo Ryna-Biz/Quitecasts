@@ -74,7 +74,83 @@ export function Search({ onNavigate }: { onNavigate: (path: string) => void }) {
         onNavigate(`/preview/${result.id}`)
     }
 
-    return <div className="page search-page"><div className="page-heading"><p className="eyebrow">Find something to hear</p><h1>Search</h1></div><label className="search-field"><Icon name="search" size={20} /><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search podcasts and episodes" aria-label="Search podcasts and episodes" />{query ? <button onClick={() => setQuery('')} aria-label="Clear search"><Icon name="close" size={18} /></button> : null}</label>
-        {!normalized ? <p className="quiet-message">Search your library or the wider podcast directory.</p> : <div className="search-results"><section className="content-section online-section"><div className="section-heading"><h2>Search online</h2>{onlineLoading ? <span className="muted-count">Searching...</span> : onlineResults.length > 5 ? <button className="text-button" onClick={() => setShowAllOnline(!showAllOnline)}>{showAllOnline ? 'Show less' : `See all ${onlineResults.length}`}</button> : null}</div>{onlineError ? <p className="search-error">{onlineError}</p> : null}{!onlineLoading && onlineResults.length === 0 && !onlineError ? <p className="quiet-message">No online matches yet.</p> : null}<div className="online-results">{visibleOnlineResults.map((result) => <article className="online-podcast" key={result.id}><button className="online-podcast-info" onClick={() => previewPodcast(result)}><img src={result.artwork} alt="" /><span><strong>{result.title}</strong><small>{result.author} · {result.category}</small><em>Preview podcast</em></span></button><button className="secondary-button" disabled={importingId === result.id || importedIds.has(result.id)} onClick={() => void addPodcast(result)}>{importingId === result.id ? 'Adding...' : importedIds.has(result.id) ? 'Added' : 'Add podcast'}</button></article>)}</div></section>{matchedPodcasts.length > 0 ? <section className="content-section"><div className="section-heading"><h2>In your library</h2>{matchedPodcasts.length > 4 ? <button className="text-button" onClick={() => setShowAllPodcasts(!showAllPodcasts)}>{showAllPodcasts ? 'Show less' : `See all ${matchedPodcasts.length}`}</button> : null}</div><div className="podcast-list">{visiblePodcasts.map((podcast) => <PodcastRow key={podcast.id} podcast={podcast} onOpen={() => onNavigate(`/podcast/${podcast.id}`)} />)}</div></section> : null}{matchedEpisodes.length > 0 ? <section className="content-section"><div className="section-heading"><h2>Episodes</h2>{matchedEpisodes.length > 5 ? <button className="text-button" onClick={() => setShowAllEpisodes(!showAllEpisodes)}>{showAllEpisodes ? 'Show less' : `See all ${matchedEpisodes.length}`}</button> : null}</div><div className="episode-list">{visibleEpisodes.map((episode) => <EpisodeRow key={episode.id} episode={episode} />)}</div></section> : null}</div>}
-    </div>
+    return (
+        <div className="page search-page">
+            <div className="page-heading">
+                <p className="eyebrow">Find something to hear</p>
+                <h1>Search</h1>
+            </div>
+            <label className="search-field">
+                <Icon name="search" size={20} />
+                <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search podcasts and episodes" aria-label="Search podcasts and episodes" />
+                {query ? <button onClick={() => setQuery('')} aria-label="Clear search"><Icon name="close" size={18} /></button> : null}
+            </label>
+            {!normalized ? (
+                <div className="search-categories">
+                    <p className="quiet-message">Explore by category</p>
+                    <div className="category-grid">
+                        {['Arts', 'Comedy', 'Education', 'Finance', 'Health', 'Relationships', 'True Crime', 'Technology'].map((category) => (
+                            <button 
+                                key={category} 
+                                className="category-card" 
+                                onClick={() => setQuery(category)}
+                            >
+                                {category}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            ) : (
+                <div className="search-results">
+                    <section className="content-section online-section">
+                        <div className="section-heading">
+                            <h2>Search online</h2>
+                            {onlineLoading ? <span className="muted-count">Searching...</span> : onlineResults.length > 5 ? <button className="text-button" onClick={() => setShowAllOnline(!showAllOnline)}>{showAllOnline ? 'Show less' : `See all ${onlineResults.length}`}</button> : null}
+                        </div>
+                        {onlineError ? <p className="search-error">{onlineError}</p> : null}
+                        {!onlineLoading && onlineResults.length === 0 && !onlineError ? <p className="quiet-message">No online matches yet.</p> : null}
+                        <div className="online-results">
+                            {visibleOnlineResults.map((result) => (
+                                <article className="online-podcast" key={result.id}>
+                                    <button className="online-podcast-info" onClick={() => previewPodcast(result)}>
+                                        <img src={result.artwork} alt="" />
+                                        <span>
+                                            <strong>{result.title}</strong>
+                                            <small>{result.author} · {result.category}</small>
+                                            <em>Preview podcast</em>
+                                        </span>
+                                    </button>
+                                    <button className="secondary-button" disabled={importingId === result.id || importedIds.has(result.id)} onClick={() => void addPodcast(result)}>
+                                        {importingId === result.id ? 'Adding...' : importedIds.has(result.id) ? 'Added' : 'Add podcast'}
+                                    </button>
+                                </article>
+                            ))}
+                        </div>
+                    </section>
+                    {matchedPodcasts.length > 0 ? (
+                        <section className="content-section">
+                            <div className="section-heading">
+                                <h2>In your library</h2>
+                                {matchedPodcasts.length > 4 ? <button className="text-button" onClick={() => setShowAllPodcasts(!showAllPodcasts)}>{showAllPodcasts ? 'Show less' : `See all ${matchedPodcasts.length}`}</button> : null}
+                            </div>
+                            <div className="podcast-list">
+                                {visiblePodcasts.map((podcast) => <PodcastRow key={podcast.id} podcast={podcast} onOpen={() => onNavigate(`/podcast/${podcast.id}`)} />)}
+                            </div>
+                        </section>
+                    ) : null}
+                    {matchedEpisodes.length > 0 ? (
+                        <section className="content-section">
+                            <div className="section-heading">
+                                <h2>Episodes</h2>
+                                {matchedEpisodes.length > 5 ? <button className="text-button" onClick={() => setShowAllEpisodes(!showAllEpisodes)}>{showAllEpisodes ? 'Show less' : `See all ${matchedEpisodes.length}`}</button> : null}
+                            </div>
+                            <div className="episode-list">
+                                {visibleEpisodes.map((episode) => <EpisodeRow key={episode.id} episode={episode} onOpen={() => onNavigate(`/episode/${episode.id}`)} />)}
+                            </div>
+                        </section>
+                    ) : null}
+                </div>
+            )}
+        </div>
+    )
 }

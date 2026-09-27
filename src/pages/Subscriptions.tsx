@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import { getAllPodcasts } from '../data/catalog'
 import { storage } from '../services/storage'
 import { PodcastRow } from '../components/PodcastRow'
+import { Icon } from '../components/Icon'
 
 export function Subscriptions({ onNavigate }: { onNavigate: (path: string) => void }) {
     const [subscriptionIds, setSubscriptionIds] = useState(storage.getSubscriptions)
+    const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
     const podcasts = getAllPodcasts()
 
     useEffect(() => {
@@ -38,10 +40,28 @@ export function Subscriptions({ onNavigate }: { onNavigate: (path: string) => vo
                 </div>
             ) : (
                 <>
-                    <div className="subs-count-badge">
-                        <span>{subscribed.length} show{subscribed.length !== 1 ? 's' : ''}</span>
+                    <div className="subs-toolbar">
+                        <div className="subs-count-badge">
+                            <span>{subscribed.length} show{subscribed.length !== 1 ? 's' : ''}</span>
+                        </div>
+                        <div className="view-toggle">
+                            <button 
+                                className={`view-btn ${viewMode === 'list' ? 'active' : ''}`} 
+                                onClick={() => setViewMode('list')}
+                                title="List view"
+                            >
+                                <Icon name="list" size={20} />
+                            </button>
+                            <button 
+                                className={`view-btn ${viewMode === 'grid' ? 'active' : ''}`} 
+                                onClick={() => setViewMode('grid')}
+                                title="Grid view"
+                            >
+                                <Icon name="grid" size={20} />
+                            </button>
+                        </div>
                     </div>
-                    <div className="podcast-list">
+                    <div className={`podcast-list ${viewMode === 'grid' ? 'grid-view' : ''}`}>
                         {subscribed.map((podcast) => (
                             <PodcastRow
                                 key={podcast.id}
@@ -73,10 +93,15 @@ export function Subscriptions({ onNavigate }: { onNavigate: (path: string) => vo
                     font-size: 15px;
                     margin-bottom: 28px;
                 }
+                .subs-toolbar {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 20px;
+                }
                 .subs-count-badge {
                     display: inline-flex;
                     align-items: center;
-                    margin-bottom: 20px;
                     padding: 5px 14px;
                     border-radius: 999px;
                     background: var(--accent-soft);
@@ -86,6 +111,51 @@ export function Subscriptions({ onNavigate }: { onNavigate: (path: string) => vo
                     font-size: 13px;
                     font-weight: 700;
                     color: var(--accent);
+                }
+                .view-toggle {
+                    display: flex;
+                    background: var(--border-soft);
+                    padding: 4px;
+                    border-radius: 8px;
+                    gap: 4px;
+                }
+                .view-btn {
+                    background: transparent;
+                    border: none;
+                    padding: 6px;
+                    cursor: pointer;
+                    color: var(--muted);
+                    border-radius: 6px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: all 0.2s;
+                }
+                .view-btn.active {
+                    background: var(--bg-strong);
+                    color: var(--text-strong);
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }
+                .podcast-list.grid-view {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                    gap: 16px;
+                }
+                .podcast-list.grid-view .podcast-row {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    text-align: center;
+                    padding: 12px;
+                    background: var(--bg-strong);
+                    border: 1px solid var(--border);
+                    border-radius: 12px;
+                }
+                .podcast-list.grid-view .podcast-row img {
+                    width: 120px;
+                    height: 120px;
+                    border-radius: 8px;
+                    margin-bottom: 8px;
                 }
             `}</style>
         </div>
