@@ -211,8 +211,24 @@ export async function fetchFeedEpisodes(podcast: Podcast): Promise<{ podcast: Po
     return parseFeed(podcast.id, podcast.feedUrl, podcast, await fetchFeedText(podcast.feedUrl))
 }
 
+/**
+ * Most publishers send no Access-Control-Allow-Origin header, so the browser refuses to
+ * hand their feed to the app and the show looks empty. Fetching through a server that is
+ * not bound by CORS is the only way around it.
+ *
+ * The default route is served two ways from this one codebase: Vite's dev middleware
+ * during `npm run dev` (see vite.config.ts) and the Vercel function in api/feed.js once
+ * deployed. Override with VITE_FEED_PROXY only if the app is hosted somewhere without
+ * serverless functions.
+ */
+const FEED_PROXY_BASE = import.meta.env.VITE_FEED_PROXY ?? '/api/feed?url='
+
+function requestFeedUrl(feedUrl: string) {
+    return `${FEED_PROXY_BASE}${encodeURIComponent(feedUrl)}`
+}
+
 async function fetchFeedText(feedUrl: string) {
-    const response = await fetchWithTimeout(feedUrl, FEED_TIMEOUT_MS)
+    const response = await fetchWithTimeout(requestFeedUrl(feedUrl), FEED_TIMEOUT_MS)
     if (!response.ok) throw new Error('This podcast feed could not be loaded.')
     return response.text()
 }
