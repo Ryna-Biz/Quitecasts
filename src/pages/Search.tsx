@@ -85,14 +85,26 @@ export function Search({ onNavigate }: { onNavigate: (path: string) => void }) {
                 <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search podcasts and episodes" aria-label="Search podcasts and episodes" />
                 {query ? <button onClick={() => setQuery('')} aria-label="Clear search"><Icon name="close" size={18} /></button> : null}
             </label>
-            <div className="search-categories">
+            <div className="search-categories" style={{ marginTop: '32px', textAlign: 'center' }}>
                 <p className="quiet-message">Explore by category</p>
-                <div className="category-grid">
+                <div className="category-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '12px', marginTop: '20px' }}>
                     {['Arts', 'Comedy', 'Education', 'Finance', 'Health', 'Relationships', 'True Crime', 'Technology'].map((category) => (
                         <button 
                             key={category} 
                             className="category-card" 
                             onClick={() => setQuery(category)}
+                            style={{
+                                padding: '16px',
+                                background: 'var(--surface)',
+                                border: '1.5px solid var(--border)',
+                                borderRadius: 'var(--radius-md)',
+                                color: 'var(--text)',
+                                fontWeight: '600',
+                                fontSize: '14px',
+                                transition: 'all 0.2s ease',
+                                boxShadow: 'var(--shadow-sm)',
+                                cursor: 'pointer'
+                            }}
                         >
                             {category}
                         </button>
