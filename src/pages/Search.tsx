@@ -99,57 +99,55 @@ export function Search({ onNavigate }: { onNavigate: (path: string) => void }) {
                     ))}
                 </div>
             </div>
-            {normalized && normalized.length > 0 ? (
-                <div className="search-results">
-                    <section className="content-section online-section">
+            <div className="search-results">
+                <section className="content-section online-section">
+                    <div className="section-heading">
+                        <h2>Search online</h2>
+                        {onlineLoading ? <span className="muted-count">Searching...</span> : onlineResults.length > 5 ? <button className="text-button" onClick={() => setShowAllOnline(!showAllOnline)}>{showAllOnline ? 'Show less' : `See all ${onlineResults.length}`}</button> : null}
+                    </div>
+                    {onlineError ? <p className="search-error">{onlineError}</p> : null}
+                    {!onlineLoading && onlineResults.length === 0 && !onlineError ? <p className="quiet-message">No online matches yet.</p> : null}
+                    <div className="online-results">
+                        {visibleOnlineResults.map((result) => (
+                            <article className="online-podcast" key={result.id}>
+                                <button className="online-podcast-info" onClick={() => previewPodcast(result)}>
+                                    <img src={result.artwork} alt="" />
+                                    <span>
+                                        <strong>{result.title}</strong>
+                                        <small>{result.author} · {result.category}</small>
+                                        <em>Preview podcast</em>
+                                    </span>
+                                </button>
+                                <button className="secondary-button" disabled={importingId === result.id || importedIds.has(result.id)} onClick={() => void addPodcast(result)}>
+                                    {importingId === result.id ? 'Adding...' : importedIds.has(result.id) ? 'Added' : 'Add podcast'}
+                                </button>
+                            </article>
+                        ))}
+                    </div>
+                </section>
+                {matchedPodcasts.length > 0 ? (
+                    <section className="content-section">
                         <div className="section-heading">
-                            <h2>Search online</h2>
-                            {onlineLoading ? <span className="muted-count">Searching...</span> : onlineResults.length > 5 ? <button className="text-button" onClick={() => setShowAllOnline(!showAllOnline)}>{showAllOnline ? 'Show less' : `See all ${onlineResults.length}`}</button> : null}
+                            <h2>In your library</h2>
+                            {matchedPodcasts.length > 4 ? <button className="text-button" onClick={() => setShowAllPodcasts(!showAllPodcasts)}>{showAllPodcasts ? 'Show less' : `See all ${matchedPodcasts.length}`}</button> : null}
                         </div>
-                        {onlineError ? <p className="search-error">{onlineError}</p> : null}
-                        {!onlineLoading && onlineResults.length === 0 && !onlineError ? <p className="quiet-message">No online matches yet.</p> : null}
-                        <div className="online-results">
-                            {visibleOnlineResults.map((result) => (
-                                <article className="online-podcast" key={result.id}>
-                                    <button className="online-podcast-info" onClick={() => previewPodcast(result)}>
-                                        <img src={result.artwork} alt="" />
-                                        <span>
-                                            <strong>{result.title}</strong>
-                                            <small>{result.author} · {result.category}</small>
-                                            <em>Preview podcast</em>
-                                        </span>
-                                    </button>
-                                    <button className="secondary-button" disabled={importingId === result.id || importedIds.has(result.id)} onClick={() => void addPodcast(result)}>
-                                        {importingId === result.id ? 'Adding...' : importedIds.has(result.id) ? 'Added' : 'Add podcast'}
-                                    </button>
-                                </article>
-                            ))}
+                        <div className="podcast-list">
+                            {visiblePodcasts.map((podcast) => <PodcastRow key={podcast.id} podcast={podcast} onOpen={() => onNavigate(`/podcast/${podcast.id}`)} />)}
                         </div>
                     </section>
-                    {matchedPodcasts.length > 0 ? (
-                        <section className="content-section">
-                            <div className="section-heading">
-                                <h2>In your library</h2>
-                                {matchedPodcasts.length > 4 ? <button className="text-button" onClick={() => setShowAllPodcasts(!showAllPodcasts)}>{showAllPodcasts ? 'Show less' : `See all ${matchedPodcasts.length}`}</button> : null}
-                            </div>
-                            <div className="podcast-list">
-                                {visiblePodcasts.map((podcast) => <PodcastRow key={podcast.id} podcast={podcast} onOpen={() => onNavigate(`/podcast/${podcast.id}`)} />)}
-                            </div>
-                        </section>
-                    ) : null}
-                    {matchedEpisodes.length > 0 ? (
-                        <section className="content-section">
-                            <div className="section-heading">
-                                <h2>Episodes</h2>
-                                {matchedEpisodes.length > 5 ? <button className="text-button" onClick={() => setShowAllEpisodes(!showAllEpisodes)}>{showAllEpisodes ? 'Show less' : `See all ${matchedEpisodes.length}`}</button> : null}
-                            </div>
-                            <div className="episode-list">
-                                {visibleEpisodes.map((episode) => <EpisodeRow key={episode.id} episode={episode} onOpen={() => onNavigate(`/episode/${episode.id}`)} />)}
-                            </div>
-                        </section>
-                    ) : null}
-                </div>
-            ) : null}
+                ) : null}
+                {matchedEpisodes.length > 0 ? (
+                    <section className="content-section">
+                        <div className="section-heading">
+                            <h2>Episodes</h2>
+                            {matchedEpisodes.length > 5 ? <button className="text-button" onClick={() => setShowAllEpisodes(!showAllEpisodes)}>{showAllEpisodes ? 'Show less' : `See all ${matchedEpisodes.length}`}</button> : null}
+                        </div>
+                        <div className="episode-list">
+                            {visibleEpisodes.map((episode) => <EpisodeRow key={episode.id} episode={episode} onOpen={() => onNavigate(`/episode/${episode.id}`)} />)}
+                        </div>
+                    </section>
+                ) : null}
+            </div>
         </div>
     )
 }
