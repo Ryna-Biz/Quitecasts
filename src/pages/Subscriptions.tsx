@@ -63,11 +63,12 @@ export function Subscriptions({ onNavigate }: { onNavigate: (path: string) => vo
                     </div>
                     <div className={`podcast-list ${viewMode === 'grid' ? 'grid-view' : ''}`}>
                         {subscribed.map((podcast) => (
-                            <PodcastRow
-                                key={podcast.id}
-                                podcast={podcast}
-                                onOpen={() => onNavigate(`/podcast/${podcast.id}`)}
-                            />
+                            <div key={podcast.id} className={`podcast-row-wrapper ${viewMode === 'grid' ? 'grid-item' : ''}`}>
+                                <PodcastRow
+                                    podcast={podcast}
+                                    onOpen={() => onNavigate(`/podcast/${podcast.id}`)}
+                                />
+                            </div>
                         ))}
                     </div>
                 </>
@@ -141,7 +142,7 @@ export function Subscriptions({ onNavigate }: { onNavigate: (path: string) => vo
                     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
                     gap: 16px;
                 }
-                .podcast-list.grid-view .podcast-row {
+                .podcast-list.grid-view .podcast-row-wrapper.grid-item {
                     display: flex;
                     flex-direction: column;
                     align-items: center;
@@ -151,11 +152,43 @@ export function Subscriptions({ onNavigate }: { onNavigate: (path: string) => vo
                     border: 1px solid var(--border);
                     border-radius: 12px;
                 }
-                .podcast-list.grid-view .podcast-row img {
+                .podcast-list.grid-view .grid-item .podcast-row {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    text-align: center;
+                    width: 100%;
+                    padding: 0;
+                    background: transparent;
+                    border: none;
+                    box-shadow: none;
+                }
+                .podcast-list.grid-view .grid-item .podcast-row-copy {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    margin-top: 8px;
+                }
+                .podcast-list.grid-view .grid-item img {
                     width: 120px;
                     height: 120px;
                     border-radius: 8px;
                     margin-bottom: 8px;
+                }
+                .podcast-list.grid-view .grid-item .podcast-row-copy strong {
+                    font-size: 14px;
+                    margin-bottom: 2px;
+                }
+                .podcast-list.grid-view .grid-item .podcast-row-copy span,
+                .podcast-list.grid-view .grid-item .podcast-row-copy small {
+                    font-size: 12px;
+                    color: var(--muted);
+                }
+                .podcast-list.grid-view .grid-item .podcast-row svg {
+                    display: none;
+                }
+                .podcast-list.grid-view .grid-item .podcast-row {
+                    cursor: pointer;
                 }
             `}</style>
         </div>

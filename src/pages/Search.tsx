@@ -85,25 +85,47 @@ export function Search({ onNavigate }: { onNavigate: (path: string) => void }) {
                 <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search podcasts and episodes" aria-label="Search podcasts and episodes" />
                 {query ? <button onClick={() => setQuery('')} aria-label="Clear search"><Icon name="close" size={18} /></button> : null}
             </label>
-            <div className="search-categories" style={{ marginTop: '32px', textAlign: 'center' }}>
-                <p className="quiet-message">Explore by category</p>
-                <div className="category-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '12px', marginTop: '20px' }}>
+            
+            {/* Category cards - always visible */}
+            <div style={{ 
+                marginTop: '32px', 
+                textAlign: 'center',
+                padding: '20px',
+                backgroundColor: 'var(--surface-muted)',
+                borderRadius: 'var(--radius-md)'
+            }}>
+                <p className="quiet-message" style={{ 
+                    marginBottom: '20px',
+                    color: 'var(--muted)',
+                    fontSize: '14px'
+                }}>Explore by category</p>
+                <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', 
+                    gap: '12px' 
+                }}>
                     {['Arts', 'Comedy', 'Education', 'Finance', 'Health', 'Relationships', 'True Crime', 'Technology'].map((category) => (
                         <button 
                             key={category} 
-                            className="category-card" 
                             onClick={() => setQuery(category)}
                             style={{
                                 padding: '16px',
-                                background: 'var(--surface)',
+                                backgroundColor: 'var(--surface)',
                                 border: '1.5px solid var(--border)',
                                 borderRadius: 'var(--radius-md)',
                                 color: 'var(--text)',
                                 fontWeight: '600',
                                 fontSize: '14px',
-                                transition: 'all 0.2s ease',
-                                boxShadow: 'var(--shadow-sm)',
-                                cursor: 'pointer'
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = 'var(--accent-soft)';
+                                e.currentTarget.style.color = 'var(--accent)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = 'var(--surface)';
+                                e.currentTarget.style.color = 'var(--text)';
                             }}
                         >
                             {category}
@@ -111,55 +133,57 @@ export function Search({ onNavigate }: { onNavigate: (path: string) => void }) {
                     ))}
                 </div>
             </div>
-            <div className="search-results">
-                <section className="content-section online-section">
-                    <div className="section-heading">
-                        <h2>Search online</h2>
-                        {onlineLoading ? <span className="muted-count">Searching...</span> : onlineResults.length > 5 ? <button className="text-button" onClick={() => setShowAllOnline(!showAllOnline)}>{showAllOnline ? 'Show less' : `See all ${onlineResults.length}`}</button> : null}
-                    </div>
-                    {onlineError ? <p className="search-error">{onlineError}</p> : null}
-                    {!onlineLoading && onlineResults.length === 0 && !onlineError ? <p className="quiet-message">No online matches yet.</p> : null}
-                    <div className="online-results">
-                        {visibleOnlineResults.map((result) => (
-                            <article className="online-podcast" key={result.id}>
-                                <button className="online-podcast-info" onClick={() => previewPodcast(result)}>
-                                    <img src={result.artwork} alt="" />
-                                    <span>
-                                        <strong>{result.title}</strong>
-                                        <small>{result.author} · {result.category}</small>
-                                        <em>Preview podcast</em>
-                                    </span>
-                                </button>
-                                <button className="secondary-button" disabled={importingId === result.id || importedIds.has(result.id)} onClick={() => void addPodcast(result)}>
-                                    {importingId === result.id ? 'Adding...' : importedIds.has(result.id) ? 'Added' : 'Add podcast'}
-                                </button>
-                            </article>
-                        ))}
-                    </div>
-                </section>
-                {matchedPodcasts.length > 0 ? (
-                    <section className="content-section">
+            
+            {/* Show search results when there's a query - simplified */}
+            {normalized && normalized.length > 0 && (
+                <div className="search-results">
+                    <section className="content-section online-section">
                         <div className="section-heading">
-                            <h2>In your library</h2>
-                            {matchedPodcasts.length > 4 ? <button className="text-button" onClick={() => setShowAllPodcasts(!showAllPodcasts)}>{showAllPodcasts ? 'Show less' : `See all ${matchedPodcasts.length}`}</button> : null}
-                        </div>
-                        <div className="podcast-list">
-                            {visiblePodcasts.map((podcast) => <PodcastRow key={podcast.id} podcast={podcast} onOpen={() => onNavigate(`/podcast/${podcast.id}`)} />)}
+                            <h2>Search online</h2>
+                            {onlineLoading && <span className="muted-count">Searching...</span>}
+                            {onlineError && <p className="search-error">{onlineError}</p>}
+                            {!onlineLoading && onlineResults.length === 0 && !onlineError && <p className="quiet-message">No online matches yet.</p>}
+                            <div className="online-results">
+                                {visibleOnlineResults.map((result) => (
+                                    <article className="online-podcast" key={result.id}>
+                                        <button className="online-podcast-info" onClick={() => previewPodcast(result)}>
+                                            <img src={result.artwork} alt="" style={{ width: '60px', height: '60px', borderRadius: '12px', objectFit: 'cover' }} />
+                                            <span style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                                                <strong>{result.title}</strong>
+                                                <small>{result.author} · {result.category}</small>
+                                                <em>Preview podcast</em>
+                                            </span>
+                                        </button>
+                                        <button className="secondary-button" disabled={importingId === result.id || importedIds.has(result.id)} onClick={() => void addPodcast(result)}>
+                                            {importingId === result.id ? 'Adding...' : importedIds.has(result.id) ? 'Added' : 'Add podcast'}
+                                        </button>
+                                    </article>
+                                ))}
+                            </div>
                         </div>
                     </section>
-                ) : null}
-                {matchedEpisodes.length > 0 ? (
-                    <section className="content-section">
-                        <div className="section-heading">
-                            <h2>Episodes</h2>
-                            {matchedEpisodes.length > 5 ? <button className="text-button" onClick={() => setShowAllEpisodes(!showAllEpisodes)}>{showAllEpisodes ? 'Show less' : `See all ${matchedEpisodes.length}`}</button> : null}
-                        </div>
-                        <div className="episode-list">
-                            {visibleEpisodes.map((episode) => <EpisodeRow key={episode.id} episode={episode} onOpen={() => onNavigate(`/episode/${episode.id}`)} />)}
-                        </div>
-                    </section>
-                ) : null}
-            </div>
+                    {matchedPodcasts.length > 0 && (
+                        <section className="content-section">
+                            <div className="section-heading">
+                                <h2>In your library</h2>
+                                <div className="podcast-list">
+                                    {visiblePodcasts.map((podcast) => <PodcastRow key={podcast.id} podcast={podcast} onOpen={() => onNavigate(`/podcast/${podcast.id}`)} />)}
+                                </div>
+                            </section>
+                        )
+                    : null}
+                    {matchedEpisodes.length > 0 && (
+                        <section className="content-section">
+                            <div className="section-heading">
+                                <h2>Episodes</h2>
+                                <div className="episode-list">
+                                    {visibleEpisodes.map((episode) => <EpisodeRow key={episode.id} episode={episode} onOpen={() => onNavigate(`/episode/${episode.id}`)} />)}
+                                </div>
+                            </section>
+                        )
+                    : null}
+                </div>
+            )}
         </div>
     )
 }
