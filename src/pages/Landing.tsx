@@ -4,6 +4,13 @@ import { CATEGORIES } from '../data/categories'
 import { CategoryArt } from '../components/CategoryArt'
 import { Icon } from '../components/Icon'
 
+/** Business details, kept in one place so the footer is easy to update. */
+const BUSINESS = {
+    name: 'RYNA',
+    site: 'https://rynabiz.com',
+    siteLabel: 'rynabiz.com',
+} as const
+
 /** Every claim below maps to something the app actually does. */
 const FEATURES = [
     {
@@ -59,7 +66,7 @@ export function Landing({ onExploreGuest }: { onExploreGuest?: () => void }) {
                         <span className="landing-brand-mark">
                             <img src="/logo.svg" alt="" />
                         </span>
-                        Quiet<span className="landing-brand-accent">casts</span>
+                        Quiet<span className="landing-brand-accent">Casts</span>
                     </a>
                     <nav className="landing-header-actions">
                         <button className="text-button" onClick={openAuth}>Sign in</button>
@@ -128,14 +135,46 @@ export function Landing({ onExploreGuest }: { onExploreGuest?: () => void }) {
             </main>
 
             <footer className="landing-footer">
-                <div className="landing-shell">
-                    <span className="landing-brand landing-brand-sm">
-                        <span className="landing-brand-mark">
-                            <img src="/logo.svg" alt="" />
+                <div className="landing-shell landing-footer-main">
+                    <div className="landing-footer-brand">
+                        <span className="landing-brand landing-brand-sm">
+                            <span className="landing-brand-mark">
+                                <img src="/logo.svg" alt="" />
+                            </span>
+                            Quiet<span className="landing-brand-accent">Casts</span>
                         </span>
-                        Quiet<span className="landing-brand-accent">casts</span>
-                    </span>
-                    <p>A small player for the shows you actually want to hear.</p>
+                        <p>A small player for the shows you actually want to hear.</p>
+                    </div>
+
+                    <div className="landing-footer-links">
+                        <div>
+                            <h2>Product</h2>
+                            <ul>
+                                {/* Every app route is behind auth, so these open the same
+                                    sign-in prompt the call-to-action buttons use. */}
+                                <li><button type="button" onClick={openAuth}>Browse shows</button></li>
+                                <li><button type="button" onClick={openAuth}>Your subscriptions</button></li>
+                                <li><button type="button" onClick={openAuth}>Listening history</button></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h2>Business</h2>
+                            <ul>
+                                <li>
+                                    <a href={BUSINESS.site} target="_blank" rel="noopener noreferrer">
+                                        {BUSINESS.siteLabel}
+                                        <Icon name="chevron" size={14} />
+                                    </a>
+                                </li>
+                                <li><span className="landing-footer-muted">By {BUSINESS.name}</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="landing-shell landing-footer-bottom">
+                    <span>&copy; {new Date().getFullYear()} {BUSINESS.name}. All rights reserved.</span>
+                    <span>QuietCasts</span>
                 </div>
             </footer>
 
@@ -145,7 +184,7 @@ export function Landing({ onExploreGuest }: { onExploreGuest?: () => void }) {
                         <button className="landing-modal-close" onClick={() => setAuthOpen(false)} aria-label="Close">
                             <Icon name="close" size={18} />
                         </button>
-                        <h2>Sign in to Quietcasts</h2>
+                        <h2>Sign in to QuietCasts</h2>
                         <p>Sync your subscriptions, progress, history and downloads across devices.</p>
 
                         {authError ? <p className="landing-modal-error" role="status">{authError}</p> : null}

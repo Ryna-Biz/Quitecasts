@@ -12,9 +12,9 @@ export function Navigation({ path, theme, onNavigate, onToggleTheme }: { path: s
     return <nav className="navigation" aria-label="Primary navigation">
         <div className="brand" onClick={() => onNavigate('/')}>
             <div className="brand-logo-box">
-                <img src="/logo.svg" alt="Quietcasts logo" />
+                <img src="/logo.svg" alt="QuietCasts logo" />
             </div>
-            <span>Quiet<span className="brand-name-accent">casts</span></span>
+            <span>Quiet<span className="brand-name-accent">Casts</span></span>
         </div>
 
         <div className="nav-links">

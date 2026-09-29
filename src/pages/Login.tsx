@@ -15,7 +15,7 @@ export function Login() {
         <div className="login-page">
             <div className="login-container">
                 <div className="login-header">
-                    <h1>Quietcasts</h1>
+                    <h1>QuietCasts</h1>
                     <p>Your personal podcast companion</p>
                 </div>
 

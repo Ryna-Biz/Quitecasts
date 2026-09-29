@@ -1,4 +1,4 @@
-# Quietcasts
+# QuietCasts
 
 A small, web-only podcast player inspired by the quiet, content-first feel of classic podcast apps.
 
@@ -27,7 +27,7 @@ git init
 git branch -M main
 git remote add origin https://github.com/Ryna-Biz/Quitecasts.git
 git add .
-git commit -m "Initial Quietcasts web app"
+git commit -m "Initial QuietCasts web app"
 git push -u origin main
 ```
 
