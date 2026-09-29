@@ -2107,6 +2107,31 @@ select:focus-visible {
 
     .brand, .mobile-header { display: none; }
 
+    /* Account access lives in the mobile header, so signing out is always reachable. */
+    .mobile-header-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: auto;
+    }
+
+    .mobile-header-actions .user-button {
+        width: 44px;
+        height: 44px;
+    }
+
+    /* The header sits at the top, so its menu drops down and spans the screen rather
+       than being right-aligned to a 40px button. */
+    .account-menu-header .user-menu {
+        position: fixed;
+        top: 60px;
+        right: 12px;
+        left: 12px;
+        bottom: auto;
+        max-width: 420px;
+        margin-left: auto;
+    }
+
     .nav-links {
         height: 100%;
         display: grid;
@@ -2122,6 +2147,7 @@ select:focus-visible {
         gap: 3px;
         border-radius: 0;
         padding: 6px 0;
+        min-height: 48px;
         font-size: 10px;
         font-weight: 600;
         transform: none !important;
@@ -2138,9 +2164,9 @@ select:focus-visible {
         display: flex;
         gap: 9px;
         align-items: center;
-        height: 56px;
+        min-height: 56px;
         border-bottom: 1px solid var(--border);
-        padding: 0 18px;
+        padding: 0 12px 0 18px;
         background: color-mix(in srgb, var(--background) 94%, transparent);
         backdrop-filter: blur(12px);
         font-family: 'Outfit', sans-serif;
@@ -2151,13 +2177,59 @@ select:focus-visible {
 
     .mobile-theme-toggle {
         display: grid;
-        width: auto;
-        margin: 0 0 0 auto;
-        padding: 6px;
+        width: 44px;
+        height: 44px;
+        margin: 0;
+        padding: 0;
+        place-items: center;
         border: 1px solid var(--border);
-        border-radius: 8px;
+        border-radius: 10px;
         color: var(--muted);
         background: var(--surface-muted);
+    }
+
+    /* ── TOUCH TARGETS ──
+       44px is the smallest reliably hittable size on a phone. */
+    .icon-button,
+    .play-button,
+    .round-control { width: 44px; height: 44px; }
+
+    .view-btn { padding: 0; width: 44px; height: 44px; }
+    .view-toggle { padding: 3px; }
+
+    .back-link,
+    .text-button { min-height: 44px; padding: 10px 2px; }
+
+    .primary-button,
+    .secondary-button { min-height: 46px; }
+
+    .sort-trigger { min-height: 44px; padding: 0 12px; }
+    .sort-menu-item { min-height: 46px; }
+    .category-browse-toggle { min-height: 44px; }
+
+    .user-button { width: 44px; height: 44px; }
+
+    /* Give the seek bar a finger-sized hit area while keeping the thin track. */
+    .progress-range,
+    .mini-progress .progress-range {
+        height: 24px;
+        background: transparent;
+        accent-color: var(--accent);
+    }
+
+    .progress-range::-webkit-slider-runnable-track {
+        height: 4px;
+        border-radius: 999px;
+        background: var(--border);
+    }
+
+    .progress-range::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 16px;
+        height: 16px;
+        margin-top: -6px;
+        border-radius: 50%;
+        background: var(--accent);
     }
 
     .main-content { padding: 32px 18px 130px; }
@@ -2205,16 +2277,35 @@ select:focus-visible {
         width: auto;
     }
 
-    .mini-progress .progress-range { height: 3px; }
+    .mini-progress .progress-range { height: 24px; }
 
     .mini-controls { gap: 4px; }
-    .mini-controls .play-button { width: 36px; height: 36px; }
+    .mini-controls .play-button { width: 44px; height: 44px; }
 
     .full-player-art .artwork-large { width: min(300px, 78vw); height: min(300px, 78vw); }
     .full-player-copy h1 { font-size: 26px; }
 
-    .online-podcast { align-items: flex-start; }
-    .online-podcast .secondary-button { margin-left: auto; }
+    .online-podcast { align-items: flex-start; flex-wrap: wrap; }
+    .online-podcast-info { flex: 1 1 100%; }
+    /* Matches the base rule's specificity so the tap size is not silently overridden. */
+    .online-podcast .secondary-button { margin-left: auto; min-width: 120px; min-height: 46px; }
+    .result-card .secondary-button,
+    .secondary-button.compact { min-height: 46px; }
+
+    /* Components added after the original responsive pass had no phone rules. */
+    .search-categories { padding: 14px; margin-top: 22px; }
+    .category-explore-head { flex-wrap: wrap; }
+    .category-grid { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; }
+    .category-card-label { font-size: 12px; }
+
+    .category-header { flex-direction: column; align-items: flex-start; gap: 16px; padding: 18px; }
+    .category-header-art { width: 92px; height: 92px; }
+    .category-results { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+
+    .subs-toolbar { gap: 10px; }
+    .subs-count-badge { padding: 0 12px; }
+    .search-field { height: 52px; }
+    .search-field input { font-size: 16px; min-height: 44px; }
 
     .preview-episode { display: block; }
     .preview-episode > span { display: block; margin-top: 8px; }
@@ -2222,13 +2313,19 @@ select:focus-visible {
 }
 
 @media (max-width: 430px) {
-    .podcast-header { display: grid; grid-template-columns: 92px 1fr; }
-    .podcast-header .artwork-large { width: 92px; height: 92px; }
-    .podcast-header-copy { grid-column: 1 / -1; }
-    .podcast-header > .artwork-large { grid-row: 1; }
-    .podcast-header-copy { margin-top: -108px; margin-left: 109px; }
+    /* Replaces a negative-margin layout that broke as soon as titles wrapped. */
+    .podcast-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .podcast-header .artwork-large { width: 132px; height: 132px; }
+    .podcast-header-copy { margin-top: 0; margin-left: 0; }
     .podcast-header-copy .podcast-description,
     .podcast-header-copy .text-button,
-    .podcast-header-copy .podcast-actions { margin-left: -109px; }
-    .podcast-header-copy .podcast-description { margin-top: 30px; }
+    .podcast-header-copy .podcast-actions { margin-left: 0; }
+    .podcast-actions { justify-content: center; }
+    .podcast-header-copy .podcast-description { margin-top: 12px; }
 }

@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { useAuth } from '../context/AuthContext'
+import { AccountMenu } from './AccountMenu'
 import { Icon, type IconName } from './Icon'
 
 const items: { path: string; label: string; icon: IconName }[] = [
@@ -10,14 +9,6 @@ const items: { path: string; label: string; icon: IconName }[] = [
 ]
 
 export function Navigation({ path, theme, onNavigate, onToggleTheme }: { path: string; theme: 'light' | 'dark'; onNavigate: (path: string) => void; onToggleTheme: () => void }) {
-    const { user, logout } = useAuth()
-    const [showUserMenu, setShowUserMenu] = useState(false)
-
-    const handleLogout = async () => {
-        await logout()
-        setShowUserMenu(false)
-    }
-
     return <nav className="navigation" aria-label="Primary navigation">
         <div className="brand" onClick={() => onNavigate('/')}>
             <div className="brand-logo-box">
@@ -50,33 +41,8 @@ export function Navigation({ path, theme, onNavigate, onToggleTheme }: { path: s
                 <span>{theme === 'light' ? 'Dark mode' : 'Light mode'}</span>
             </button>
 
-            {user && (
-                <div className="user-menu-wrapper">
-                    <button
-                        className="user-button"
-                        onClick={() => setShowUserMenu(!showUserMenu)}
-                        aria-label="User menu"
-                        title={user.email || 'User'}
-                    >
-                        {user.photoURL ? (
-                            <img src={user.photoURL} alt={user.displayName || 'User'} className="user-avatar" />
-                        ) : (
-                            <div className="user-avatar-placeholder">{user.email?.[0]?.toUpperCase()}</div>
-                        )}
-                    </button>
-                    {showUserMenu && (
-                        <div className="user-menu">
-                            <div className="user-info">
-                                <strong>{user.displayName || user.email}</strong>
-                                <small>{user.email}</small>
-                            </div>
-                            <button className="user-menu-item" onClick={handleLogout}>
-                                Sign out
-                            </button>
-                        </div>
-                    )}
-                </div>
-            )}
+            {/* Renders nothing when signed out, so no guard is needed here. */}
+            <AccountMenu />
         </div>
     </nav>
 }

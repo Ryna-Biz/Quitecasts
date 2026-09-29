@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Navigation } from './Navigation'
 import { MiniPlayer } from './MiniPlayer'
+import { AccountMenu } from './AccountMenu'
 import { Icon } from './Icon'
 
 export function Layout({ path, theme, onNavigate, onToggleTheme, children }: { path: string; theme: 'light' | 'dark'; onNavigate: (path: string) => void; onToggleTheme: () => void; children: ReactNode }) {
@@ -13,13 +14,16 @@ export function Layout({ path, theme, onNavigate, onToggleTheme, children }: { p
                         <img src="/logo.svg" alt="Quietcasts" style={{ width: '100%', height: '100%', display: 'block', objectFit: 'cover' }} />
                     </div>
                     Quiet<span style={{ color: 'var(--accent)' }}>casts</span>
-                    <button
-                        className="theme-toggle mobile-theme-toggle"
-                        onClick={onToggleTheme}
-                        aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-                    >
-                        <Icon name={theme === 'light' ? 'moon' : 'sun'} size={18} />
-                    </button>
+                    <div className="mobile-header-actions">
+                        <button
+                            className="theme-toggle mobile-theme-toggle"
+                            onClick={onToggleTheme}
+                            aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+                        >
+                            <Icon name={theme === 'light' ? 'moon' : 'sun'} size={18} />
+                        </button>
+                        <AccountMenu variant="header" />
+                    </div>
                 </header>
                 <main className="main-content">
                     {children}
