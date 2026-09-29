@@ -13,7 +13,7 @@ export function Layout({ path, theme, onNavigate, onToggleTheme, children }: { p
                     <div style={{ width: '28px', height: '28px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0 }}>
                         <img src="/logo.svg" alt="QuietCasts" style={{ width: '100%', height: '100%', display: 'block', objectFit: 'cover' }} />
                     </div>
-                    Quiet<span style={{ color: 'var(--accent)' }}>Casts</span>
+                    <span>Quiet<span style={{ color: 'var(--accent)' }}>Casts</span></span>
                     <div className="mobile-header-actions">
                         <button
                             className="theme-toggle mobile-theme-toggle"

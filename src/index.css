@@ -1780,6 +1780,7 @@ select:focus-visible {
 
 .landing-brand-mark img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .landing-brand-accent { color: var(--accent); }
+.landing-brand-tm { font-size: 0.42em; font-weight: 700; vertical-align: super; margin-left: 1px; }
 .landing-brand-sm { font-size: 17px; }
 .landing-brand-sm .landing-brand-mark { width: 28px; height: 28px; border-radius: 8px; }
 
@@ -2134,6 +2135,49 @@ select:focus-visible {
     .landing-footer-links ul { gap: 2px; }
     .landing-footer-links a,
     .landing-footer-links button { min-height: 44px; align-items: center; }
+}
+
+/* ── LEGAL / PRIVACY ── */
+.legal-page { max-width: 760px; }
+
+.legal-header { padding-bottom: 28px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+.legal-header h1 { margin-bottom: 12px; }
+.legal-updated { margin-top: 14px; font-size: 13px; color: var(--muted); }
+
+.legal-section { margin-top: 34px; }
+.legal-section h2 {
+    margin-bottom: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text-strong);
+}
+
+.legal-section p,
+.legal-section li { font-size: 15px; line-height: 1.7; color: var(--text); }
+.legal-section p { margin-bottom: 14px; }
+.legal-section p:last-child { margin-bottom: 0; }
+.legal-section strong { font-weight: 700; color: var(--text-strong); }
+
+.legal-section ul { margin: 0 0 14px; padding-left: 20px; }
+.legal-section li { margin-bottom: 10px; }
+.legal-section li:last-child { margin-bottom: 0; }
+
+.legal-section a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+.legal-section a:hover { color: var(--accent-hover); }
+
+.legal-note {
+    padding: 18px 20px;
+    border-radius: var(--radius-md);
+    background: var(--surface-muted);
+    font-size: 14px !important;
+}
+.legal-note .text-button { min-height: 0; padding: 0; font-size: 14px; }
+
+@media (max-width: 620px) {
+    .legal-section h2 { font-size: 18px; }
+    .legal-section p, .legal-section li { font-size: 14px; }
 }
 
 /* ── SPIN ANIMATION ── */

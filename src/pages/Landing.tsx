@@ -35,7 +35,7 @@ const FEATURES = [
     },
 ]
 
-export function Landing({ onExploreGuest }: { onExploreGuest?: () => void }) {
+export function Landing({ onExploreGuest, onNavigate }: { onExploreGuest?: () => void; onNavigate?: (path: string) => void }) {
     const { login } = useAuth()
     const [authOpen, setAuthOpen] = useState(false)
     const [signingIn, setSigningIn] = useState(false)
@@ -66,7 +66,9 @@ export function Landing({ onExploreGuest }: { onExploreGuest?: () => void }) {
                         <span className="landing-brand-mark">
                             <img src="/logo.svg" alt="" />
                         </span>
-                        Quiet<span className="landing-brand-accent">Casts</span>
+                        {/* Wrapped so "Quiet" and "Casts" are one flex item; as siblings the
+                            brand's gap would land between them. */}
+                        <span>Quiet<span className="landing-brand-accent">Casts</span></span>
                     </a>
                     <nav className="landing-header-actions">
                         <button className="text-button" onClick={openAuth}>Sign in</button>
@@ -141,7 +143,7 @@ export function Landing({ onExploreGuest }: { onExploreGuest?: () => void }) {
                             <span className="landing-brand-mark">
                                 <img src="/logo.svg" alt="" />
                             </span>
-                            Quiet<span className="landing-brand-accent">Casts</span>
+                            <span>Quiet<span className="landing-brand-accent">Casts</span><sup className="landing-brand-tm">&trade;</sup></span>
                         </span>
                         <p>A small player for the shows you actually want to hear.</p>
                     </div>
@@ -166,15 +168,16 @@ export function Landing({ onExploreGuest }: { onExploreGuest?: () => void }) {
                                         <Icon name="chevron" size={14} />
                                     </a>
                                 </li>
-                                <li><span className="landing-footer-muted">By {BUSINESS.name}</span></li>
+                                <li><span className="landing-footer-muted">By {BUSINESS.name}&trade;</span></li>
+                                <li><button type="button" onClick={() => { setAuthOpen(false); onNavigate?.('/privacy') }}>Privacy Policy</button></li>
                             </ul>
                         </div>
                     </div>
                 </div>
 
                 <div className="landing-shell landing-footer-bottom">
-                    <span>&copy; {new Date().getFullYear()} {BUSINESS.name}. All rights reserved.</span>
-                    <span>QuietCasts</span>
+                    <span>&copy; {new Date().getFullYear()} {BUSINESS.name}&trade;. All rights reserved.</span>
+                    <span>QuietCasts&trade;</span>
                 </div>
             </footer>
 
